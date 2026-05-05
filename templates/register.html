@@ -7,17 +7,17 @@
         <h1 class="font-display text-white text-xl font-bold tracking-wide">Create Your Account</h1>
         <p class="text-gold-500 text-[.65rem] tracking-[.18em] uppercase mt-1">Western Mindanao State University</p>
     </div>
-    <div class="bg-white/96 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-white/20">
-        <div class="px-7 pt-6 pb-1">
-            <h2 class="text-lg font-bold text-gray-900">Registration</h2>
-            <p class="text-gray-500 text-sm mt-0.5">Fill in the details below to get started</p>
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+        <div class="px-7 pt-6 pb-1 border-b border-gray-100">
+            <h2 class="text-lg font-bold text-maroon-700">Registration</h2>
+            <p class="text-gray-600 text-sm mt-0.5">Fill in the details below to get started</p>
         </div>
         <div class="px-7 pb-7 pt-5">
             <form method="POST" id="registerForm" novalidate>
 
                 <!-- Full Name -->
                 <div class="mb-4">
-                    <label class="form-label" for="name">Full Name</label>
+                    <label class="form-label text-gray-700" for="name">Full Name</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-id-card text-sm"></i></span>
                         <input type="text" id="name" name="name" class="form-input pl-9" value="{{ request.form.get('name','') }}" placeholder="e.g. Juan Dela Cruz" required>
@@ -26,7 +26,7 @@
 
                 <!-- Email -->
                 <div class="mb-4">
-                    <label class="form-label" for="email">Email Address</label>
+                    <label class="form-label text-gray-700" for="email">Email Address</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-envelope text-sm"></i></span>
                         <input type="email" id="email" name="email" class="form-input pl-9" value="{{ request.form.get('email','') }}" placeholder="example@wmsu.edu.ph" required>
@@ -35,7 +35,7 @@
 
                 <!-- Password -->
                 <div class="mb-4">
-                    <label class="form-label" for="password">Password <span class="text-gray-400 font-normal">(min. 6 characters)</span></label>
+                    <label class="form-label text-gray-700" for="password">Password <span class="text-gray-400 font-normal">(min. 6 characters)</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-lock text-sm"></i></span>
                         <input type="password" id="password" name="password" class="form-input pl-9 pr-11" placeholder="Minimum 6 characters" required autocomplete="new-password">
@@ -51,7 +51,7 @@
 
                 <!-- Confirm Password -->
                 <div class="mb-4">
-                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                    <label class="form-label text-gray-700" for="confirm_password">Confirm Password</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-lock text-sm"></i></span>
                         <input type="password" id="confirm_password" name="confirm_password" class="form-input pl-9 pr-11" placeholder="Re-enter your password" required autocomplete="new-password">
@@ -63,7 +63,7 @@
 
                 <!-- Role -->
                 <div class="mb-4">
-                    <label class="form-label" for="role">Account Type</label>
+                    <label class="form-label text-gray-700" for="role">Account Type</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-user-tag text-sm"></i></span>
                         <select id="role" name="role" class="form-input pl-9 cursor-pointer" required onchange="toggleFields()">
@@ -76,7 +76,7 @@
 
                 <!-- Student Number -->
                 <div id="studentNumberField" class="mb-4 hidden">
-                    <label class="form-label" for="student_number">Student Number</label>
+                    <label class="form-label text-gray-700" for="student_number">Student Number</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-hashtag text-sm"></i></span>
                         <input type="text" id="student_number" name="student_number" class="form-input pl-9" value="{{ request.form.get('student_number','') }}" placeholder="e.g. 2024-00001" maxlength="20">
@@ -85,7 +85,7 @@
 
                 <!-- Subject Selection -->
                 <div id="subjectField" class="mb-4 hidden">
-                    <label class="form-label" for="subject_id">Subject / Course</label>
+                    <label class="form-label text-gray-700" for="subject_id">Subject / Course</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-book text-sm"></i></span>
                         <select id="subject_id" name="subject_id" class="form-input pl-9 cursor-pointer">
@@ -100,7 +100,7 @@
 
                 <!-- Teacher Code -->
                 <div id="teacherCodeField" class="mb-4 hidden">
-                    <label class="form-label" for="teacher_code">Teacher Registration Code</label>
+                    <label class="form-label text-gray-700" for="teacher_code">Teacher Registration Code</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-key text-sm"></i></span>
                         <input type="password" id="teacher_code" name="teacher_code" class="form-input pl-9 pr-11" placeholder="Enter your registration code">
