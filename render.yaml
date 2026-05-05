@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: your-app-name
+    runtime: python
+    buildCommand: |
+      pip install "setuptools<82"
+      pip install -r requirements.txt
