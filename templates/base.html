@@ -105,6 +105,10 @@
         <div class="nav-section">Academics</div>
         <a href="{{ url_for('create_subject') }}" class="sidebar-link {% if request.endpoint=='create_subject' %}active{% endif %}"><i class="fas fa-book-open"></i>New Subject</a>
         <a href="{{ url_for('create_exam') }}" class="sidebar-link {% if request.endpoint=='create_exam' %}active{% endif %}"><i class="fas fa-file-pen"></i>New Exam</a>
+        <div class="nav-section">Access Control</div>
+        <a href="{{ url_for('exam_requests') }}" class="sidebar-link {% if request.endpoint in ['exam_requests','approve_request','reject_request'] %}active{% endif %}" style="position:relative">
+            <i class="fas fa-inbox"></i>Exam Requests
+        </a>
         <div class="nav-section">Students</div>
         <a href="{{ url_for('upload_students') }}" class="sidebar-link {% if request.endpoint=='upload_students' %}active{% endif %}"><i class="fas fa-cloud-arrow-up"></i>Upload Students</a>
         <a href="{{ url_for('view_allowed_students') }}" class="sidebar-link {% if request.endpoint=='view_allowed_students' %}active{% endif %}"><i class="fas fa-users"></i>View Students</a>

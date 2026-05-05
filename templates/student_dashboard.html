@@ -2,17 +2,37 @@
 {% block title %}Student Dashboard{% endblock %}
 {% block content %}
 
-<!-- Header -->
 <div class="mb-6">
     <h1 class="page-title">My Exams</h1>
     <p class="page-subtitle">Hello, <span class="font-semibold text-maroon-700">{{ session.name }}</span> &nbsp;·&nbsp; Student #{{ session.student_number }}</p>
 </div>
 
+<!-- Access Key Input -->
+<div class="card mb-6">
+    <div class="card-body">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-gray-800 text-sm mb-0.5"><i class="fas fa-key text-gold-500 mr-1.5"></i>Have an Exam Access Key?</h3>
+                <p class="text-xs text-gray-500">Enter the key your teacher shared to get instant access to an exam.</p>
+            </div>
+            <form method="POST" action="{{ url_for('use_exam_key') }}" class="flex gap-2 w-full sm:w-auto">
+                <input type="text" name="access_key" placeholder="e.g. AB12CD34"
+                       class="form-input uppercase tracking-widest font-mono text-sm w-full sm:w-36"
+                       maxlength="12" required autocomplete="off">
+                <button type="submit" class="btn btn-gold flex-shrink-0">
+                    <i class="fas fa-unlock"></i> <span class="hidden sm:inline">Unlock</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% if exams %}
-<!-- Summary bar -->
+<!-- Stats -->
 {% set taken_count = exams|selectattr('taken')|list|length %}
-{% set pending_count = exams|length - taken_count %}
-<div class="grid grid-cols-3 gap-3 mb-6">
+{% set approved_count = exams|selectattr('access_status', 'equalto', 'approved')|list|length %}
+{% set pending_req_count = exams|selectattr('access_status', 'equalto', 'pending')|list|length %}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
     <div class="stat-card text-center">
         <div class="text-2xl font-bold text-maroon-700">{{ exams|length }}</div>
         <div class="text-xs text-gray-500 mt-0.5 font-medium">Total Exams</div>
@@ -22,39 +42,71 @@
         <div class="text-xs text-gray-500 mt-0.5 font-medium">Completed</div>
     </div>
     <div class="stat-card text-center">
-        <div class="text-2xl font-bold text-amber-500">{{ pending_count }}</div>
-        <div class="text-xs text-gray-500 mt-0.5 font-medium">Pending</div>
+        <div class="text-2xl font-bold text-blue-600">{{ approved_count }}</div>
+        <div class="text-xs text-gray-500 mt-0.5 font-medium">Access Approved</div>
+    </div>
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-amber-500">{{ pending_req_count }}</div>
+        <div class="text-xs text-gray-500 mt-0.5 font-medium">Pending Requests</div>
     </div>
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for exam in exams %}
-    <div class="card overflow-hidden hover:shadow-lg transition-shadow">
-        <!-- Top bar -->
-        <div class="h-1.5 {% if exam.taken %}bg-green-400{% else %}bg-maroon-700{% endif %}"></div>
-        <div class="card-body">
-            <!-- Subject badge -->
-            <div class="flex items-start justify-between gap-2 mb-3">
+    <div class="card overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+        <!-- Status bar -->
+        <div class="h-1.5
+            {% if exam.taken %}bg-green-400
+            {% elif exam.access_status == 'approved' %}bg-blue-500
+            {% elif exam.access_status == 'pending' %}bg-amber-400
+            {% elif exam.access_status == 'rejected' %}bg-red-400
+            {% else %}bg-gray-200{% endif %}"></div>
+        <div class="card-body flex flex-col flex-1">
+            <!-- Badges row -->
+            <div class="flex items-start justify-between gap-2 mb-3 flex-wrap">
                 <span class="badge badge-blue text-xs">{{ exam.subject_name }}</span>
                 {% if exam.taken %}
                 <span class="badge badge-green"><i class="fas fa-circle-check text-xs"></i> Done</span>
-                {% else %}
+                {% elif exam.access_status == 'approved' %}
+                <span class="badge" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-unlock text-xs"></i> Approved</span>
+                {% elif exam.access_status == 'pending' %}
                 <span class="badge badge-yellow"><i class="fas fa-clock text-xs"></i> Pending</span>
+                {% elif exam.access_status == 'rejected' %}
+                <span class="badge badge-red"><i class="fas fa-times text-xs"></i> Rejected</span>
+                {% else %}
+                <span class="badge" style="background:#f3f4f6;color:#6b7280"><i class="fas fa-lock text-xs"></i> No Access</span>
                 {% endif %}
             </div>
-            <!-- Title -->
+
+            <!-- Title & duration -->
             <h3 class="font-bold text-gray-900 mb-1 leading-snug">{{ exam.title }}</h3>
-            <!-- Duration -->
-            <p class="text-sm text-gray-500 mb-4"><i class="fas fa-clock text-xs mr-1.5 text-gray-400"></i>{{ exam.duration }} minutes</p>
-            <!-- Action -->
+            <p class="text-sm text-gray-500 mb-4 flex-1"><i class="fas fa-clock text-xs mr-1.5 text-gray-400"></i>{{ exam.duration }} minutes</p>
+
+            <!-- Action button -->
             {% if exam.taken %}
             <button class="btn btn-secondary w-full justify-center cursor-not-allowed opacity-70" disabled>
                 <i class="fas fa-circle-check"></i> Already Submitted
             </button>
-            {% else %}
+            {% elif exam.access_status == 'approved' %}
             <a href="{{ url_for('take_exam', exam_id=exam.id) }}" class="btn btn-primary w-full justify-center">
                 <i class="fas fa-play"></i> Start Exam
             </a>
+            {% elif exam.access_status == 'pending' %}
+            <button class="btn w-full justify-center cursor-not-allowed opacity-70" style="background:#fef3c7;color:#92400e" disabled>
+                <i class="fas fa-hourglass-half"></i> Awaiting Approval
+            </button>
+            {% elif exam.access_status == 'rejected' %}
+            <form method="POST" action="{{ url_for('request_exam_access', exam_id=exam.id) }}">
+                <button type="submit" class="btn w-full justify-center" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5">
+                    <i class="fas fa-rotate-right"></i> Re-request Access
+                </button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('request_exam_access', exam_id=exam.id) }}">
+                <button type="submit" class="btn btn-gold w-full justify-center">
+                    <i class="fas fa-hand-paper"></i> Request Access
+                </button>
+            </form>
             {% endif %}
         </div>
     </div>
@@ -62,13 +114,12 @@
 </div>
 
 {% else %}
-<!-- Empty state -->
 <div class="max-w-md mx-auto text-center py-16">
     <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <i class="fas fa-clipboard-list text-gray-300 text-3xl"></i>
     </div>
     <h2 class="text-lg font-bold text-gray-700 mb-2">No Exams Available</h2>
-    <p class="text-gray-500 text-sm">You don't have any assigned exams yet. Contact your teacher if you believe this is an error.</p>
+    <p class="text-gray-500 text-sm">You don't have any assigned exams yet. Contact your teacher or enter an access key above.</p>
 </div>
 {% endif %}
 {% endblock %}

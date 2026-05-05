@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Exam Access Keys{% endblock %}
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+    <div>
+        <h1 class="page-title">Access Keys</h1>
+        <p class="page-subtitle">
+            <span class="badge badge-blue mr-1">{{ exam.subject_name }}</span>
+            {{ exam.title }}
+        </p>
+    </div>
+    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<!-- Info Banner -->
+<div class="card mb-5" style="background:linear-gradient(135deg,#fef3c7,#fefce8);border:1px solid #fcd34d">
+    <div class="card-body py-4">
+        <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-lightbulb text-amber-600 text-sm"></i>
+            </div>
+            <div>
+                <p class="font-semibold text-amber-900 text-sm mb-1">How Access Keys Work</p>
+                <p class="text-amber-800 text-xs leading-relaxed">Generate a key and share it with your students. When they enter the key in their dashboard, they instantly get approved access to this exam — no manual approval needed.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate new key -->
+<div class="card mb-5">
+    <div class="card-header">
+        <div>
+            <h2 class="font-bold text-gray-900 text-base">Generate New Key</h2>
+            <p class="text-xs text-gray-400 mt-0.5">Each key can be used by multiple students</p>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('generate_exam_key', exam_id=exam.id) }}" class="flex items-center gap-3 flex-wrap">
+            <p class="text-sm text-gray-600 flex-1">Click the button to generate a new shareable access key for <strong>{{ exam.title }}</strong>.</p>
+            <button type="submit" class="btn btn-gold flex-shrink-0">
+                <i class="fas fa-key"></i> Generate Key
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Existing keys -->
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="font-bold text-gray-900 text-base">All Keys</h2>
+            <p class="text-xs text-gray-400 mt-0.5">{{ keys|length }} key(s) generated</p>
+        </div>
+    </div>
+    {% if keys %}
+    <div class="overflow-x-auto">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Access Key</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key in keys %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <code class="font-mono font-bold text-maroon-700 text-base tracking-widest bg-maroon-50 px-3 py-1 rounded-lg">{{ key.access_key }}</code>
+                            <button onclick="navigator.clipboard.writeText('{{ key.access_key }}'); this.innerHTML='<i class=\'fas fa-check\'></i>'; setTimeout(()=>this.innerHTML='<i class=\'fas fa-copy\'></i>',1500)"
+                                    class="text-gray-400 hover:text-gray-600 transition-colors p-1" title="Copy key">
+                                <i class="fas fa-copy text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="text-gray-500 text-sm">
+                        {{ key.created_at.strftime('%b %d, %Y %I:%M %p') if key.created_at and key.created_at is not string else key.created_at or '—' }}
+                    </td>
+                    <td>
+                        {% if key.is_active %}
+                        <span class="badge badge-green"><i class="fas fa-circle text-xs"></i> Active</span>
+                        {% else %}
+                        <span class="badge badge-red"><i class="fas fa-ban text-xs"></i> Deactivated</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if key.is_active %}
+                        <form method="POST" action="{{ url_for('deactivate_key', key_id=key.id) }}" onsubmit="return confirm('Deactivate this key? Students won\'t be able to use it anymore.')">
+                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-ban"></i> Deactivate</button>
+                        </form>
+                        {% else %}
+                        <span class="text-gray-400 text-xs">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center py-12">
+        <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-key text-gray-300 text-2xl"></i>
+        </div>
+        <p class="text-gray-500 text-sm font-medium">No keys generated yet</p>
+        <p class="text-gray-400 text-xs mt-1">Generate a key above to share with your students.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

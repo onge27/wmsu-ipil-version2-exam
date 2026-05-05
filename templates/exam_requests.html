@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Exam Access Requests{% endblock %}
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+    <div>
+        <h1 class="page-title">Exam Access Requests</h1>
+        <p class="page-subtitle">Review and approve student exam access requests</p>
+    </div>
+    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<!-- Filter tabs -->
+<div class="flex gap-2 mb-5 flex-wrap">
+    <a href="{{ url_for('exam_requests', status='pending') }}"
+       class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+        <i class="fas fa-clock"></i> Pending
+    </a>
+    <a href="{{ url_for('exam_requests', status='approved') }}"
+       class="btn btn-sm {% if status_filter == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}">
+        <i class="fas fa-circle-check"></i> Approved
+    </a>
+    <a href="{{ url_for('exam_requests', status='rejected') }}"
+       class="btn btn-sm {% if status_filter == 'rejected' %}btn-primary{% else %}btn-secondary{% endif %}">
+        <i class="fas fa-times-circle"></i> Rejected
+    </a>
+    <a href="{{ url_for('exam_requests', status='all') }}"
+       class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+        <i class="fas fa-list"></i> All
+    </a>
+</div>
+
+<div class="card">
+    {% if requests %}
+    <div class="overflow-x-auto">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Student #</th>
+                    <th>Subject</th>
+                    <th>Exam</th>
+                    <th>Requested</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td class="font-medium text-gray-800">{{ req.student_name }}</td>
+                    <td class="text-gray-500 text-sm">#{{ req.student_number }}</td>
+                    <td><span class="badge badge-blue">{{ req.subject_name }}</span></td>
+                    <td class="text-gray-800 text-sm">{{ req.exam_title }}</td>
+                    <td class="text-gray-500 text-sm">
+                        {{ req.requested_at.strftime('%b %d, %Y') if req.requested_at and req.requested_at is not string else req.requested_at or '—' }}
+                    </td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                        <span class="badge badge-yellow"><i class="fas fa-clock text-xs"></i> Pending</span>
+                        {% elif req.status == 'approved' %}
+                        <span class="badge badge-green"><i class="fas fa-check text-xs"></i> Approved</span>
+                        {% else %}
+                        <span class="badge badge-red"><i class="fas fa-times text-xs"></i> Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                        <div class="flex gap-1.5">
+                            <form method="POST" action="{{ url_for('approve_request', req_id=req.id) }}">
+                                <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_request', req_id=req.id) }}">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Reject</button>
+                            </form>
+                        </div>
+                        {% elif req.status == 'approved' %}
+                        <form method="POST" action="{{ url_for('reject_request', req_id=req.id) }}">
+                            <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('Revoke this student\'s access?')"><i class="fas fa-ban"></i> Revoke</button>
+                        </form>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('approve_request', req_id=req.id) }}">
+                            <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center py-16">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-inbox text-gray-300 text-2xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-700 mb-1">No {{ status_filter if status_filter != 'all' else '' }} requests</h3>
+        <p class="text-gray-400 text-sm">
+            {% if status_filter == 'pending' %}Students haven't sent any access requests yet.
+            {% else %}Nothing to show here.{% endif %}
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

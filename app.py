@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import secrets as pysecrets
 import sqlite3
 from functools import wraps
 from datetime import datetime
@@ -11,7 +12,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
-# ─── Load env ───────────────────────────────────────────────────────────────
 load_dotenv()
 
 # ─── Gemini AI ───────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ else:
     gemini_model = None
 
 # ─── Database ────────────────────────────────────────────────────────────────
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL') or os.getenv('NEON_DATABASE_URL')
 
 if DATABASE_URL:
     import psycopg2
@@ -51,7 +51,6 @@ def db_cursor(conn):
     return conn.cursor()
 
 def db_execute(conn, sql, params=()):
-    """Execute SQL — auto-converts ? to %s for PostgreSQL."""
     if USE_POSTGRES:
         sql = sql.replace('?', '%s')
     cur = db_cursor(conn)
@@ -59,7 +58,6 @@ def db_execute(conn, sql, params=()):
     return cur
 
 def db_lastid(cur):
-    """Get last inserted row ID."""
     if USE_POSTGRES:
         row = cur.fetchone()
         return row['id'] if row else None
@@ -67,12 +65,12 @@ def db_lastid(cur):
 
 # ─── App ──────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'wmsu-oes-change-in-production-2025')
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'wmsu-oes-secure-key-2026')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'xlsx'}
 app.config['CLERK_PUBLISHABLE_KEY'] = os.getenv('CLERK_PUBLISHABLE_KEY', '')
 app.config['CLERK_SECRET_KEY'] = os.getenv('CLERK_SECRET_KEY', '')
-app.config['YEAR'] = datetime.now().year
+app.config['YEAR'] = 2026
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ─── DB Init ─────────────────────────────────────────────────────────────────
@@ -133,6 +131,25 @@ def init_db():
             FOREIGN KEY (student_id) REFERENCES users (id),
             FOREIGN KEY (exam_id) REFERENCES exams (id)
         )''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS exam_access_requests (
+            id SERIAL PRIMARY KEY,
+            student_id INTEGER NOT NULL,
+            exam_id INTEGER NOT NULL,
+            status TEXT DEFAULT 'pending',
+            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reviewed_at TIMESTAMP,
+            UNIQUE(student_id, exam_id),
+            FOREIGN KEY (student_id) REFERENCES users (id),
+            FOREIGN KEY (exam_id) REFERENCES exams (id)
+        )''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS exam_access_keys (
+            id SERIAL PRIMARY KEY,
+            exam_id INTEGER NOT NULL,
+            access_key TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active INTEGER DEFAULT 1,
+            FOREIGN KEY (exam_id) REFERENCES exams (id)
+        )''')
     else:
         cur.execute('''CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -186,30 +203,41 @@ def init_db():
             FOREIGN KEY (student_id) REFERENCES users (id),
             FOREIGN KEY (exam_id) REFERENCES exams (id)
         )''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS exam_access_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            exam_id INTEGER NOT NULL,
+            status TEXT DEFAULT 'pending',
+            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reviewed_at TIMESTAMP,
+            UNIQUE(student_id, exam_id),
+            FOREIGN KEY (student_id) REFERENCES users (id),
+            FOREIGN KEY (exam_id) REFERENCES exams (id)
+        )''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS exam_access_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_id INTEGER NOT NULL,
+            access_key TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active INTEGER DEFAULT 1,
+            FOREIGN KEY (exam_id) REFERENCES exams (id)
+        )''')
 
     # Default teacher
     teacher_email = "teacher@example.com"
     row = db_execute(conn, "SELECT id FROM users WHERE email = ?", (teacher_email,)).fetchone()
     if not row:
         hashed = bcrypt.hashpw("teacher123".encode(), bcrypt.gensalt())
-        if USE_POSTGRES:
-            db_execute(conn, "INSERT INTO users (name, email, password, role, is_verified) VALUES (?, ?, ?, ?, ?)",
-                       ("Default Teacher", teacher_email, hashed.decode(), "teacher", 1))
-        else:
-            db_execute(conn, "INSERT INTO users (name, email, password, role, is_verified) VALUES (?, ?, ?, ?, ?)",
-                       ("Default Teacher", teacher_email, hashed, "teacher", 1))
+        db_execute(conn, "INSERT INTO users (name, email, password, role, is_verified) VALUES (?, ?, ?, ?, ?)",
+                   ("Default Teacher", teacher_email, hashed.decode() if USE_POSTGRES else hashed, "teacher", 1))
 
     # Default admin
     admin_email = "admin@example.com"
     row = db_execute(conn, "SELECT id FROM users WHERE email = ?", (admin_email,)).fetchone()
     if not row:
         hashed_admin = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt())
-        if USE_POSTGRES:
-            db_execute(conn, "INSERT INTO users (name, email, password, role, is_verified) VALUES (?, ?, ?, ?, ?)",
-                       ("System Admin", admin_email, hashed_admin.decode(), "admin", 1))
-        else:
-            db_execute(conn, "INSERT INTO users (name, email, password, role, is_verified) VALUES (?, ?, ?, ?, ?)",
-                       ("System Admin", admin_email, hashed_admin, "admin", 1))
+        db_execute(conn, "INSERT INTO users (name, email, password, role, is_verified) VALUES (?, ?, ?, ?, ?)",
+                   ("System Admin", admin_email, hashed_admin.decode() if USE_POSTGRES else hashed_admin, "admin", 1))
 
     # Default subject
     row = db_execute(conn, "SELECT COUNT(*) as cnt FROM subjects").fetchone()
@@ -261,7 +289,6 @@ def admin_required(f):
     return decorated
 
 def check_password(stored, provided):
-    """Compare stored password (bytes or str) with provided password."""
     if isinstance(stored, str):
         stored = stored.encode()
     return bcrypt.checkpw(provided.encode(), stored)
@@ -341,11 +368,14 @@ def register():
                 user_id = db_lastid(cur)
 
             if role == 'student':
-                db_execute(conn,
-                    "INSERT OR IGNORE INTO allowed_students (student_number, student_name, subject_id) VALUES (?, ?, ?)"
-                    if not USE_POSTGRES else
-                    "INSERT INTO allowed_students (student_number, student_name, subject_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                    (student_number, name, subject_id))
+                if USE_POSTGRES:
+                    db_execute(conn,
+                        "INSERT INTO allowed_students (student_number, student_name, subject_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                        (student_number, name, subject_id))
+                else:
+                    db_execute(conn,
+                        "INSERT OR IGNORE INTO allowed_students (student_number, student_name, subject_id) VALUES (?, ?, ?)",
+                        (student_number, name, subject_id))
 
             conn.commit()
             conn.close()
@@ -395,16 +425,11 @@ def logout():
 # ─── Google OAuth Callback (Clerk) ───────────────────────────────────────────
 @app.route('/auth/google/callback')
 def google_auth_callback():
-    """
-    After Clerk handles Google OAuth, verify the session and log the user in.
-    Clerk sets a __session JWT cookie; we verify it and look up the user by email.
-    """
     clerk_secret = app.config.get('CLERK_SECRET_KEY', '')
     if not clerk_secret:
         flash('Google sign-in is not configured.', 'danger')
         return redirect(url_for('login'))
 
-    # Get session token from Clerk cookie
     session_token = request.cookies.get('__session')
     if not session_token:
         flash('Authentication failed. Please try again.', 'danger')
@@ -413,7 +438,6 @@ def google_auth_callback():
     try:
         import urllib.request
         import urllib.parse
-        # Verify with Clerk's session verification endpoint
         req = urllib.request.Request(
             'https://api.clerk.com/v1/sessions/verify',
             data=urllib.parse.urlencode({'token': session_token}).encode(),
@@ -428,7 +452,6 @@ def google_auth_callback():
 
         email = data.get('session', {}).get('user', {}).get('email_addresses', [{}])[0].get('email_address', '')
         if not email:
-            # Try alternate path
             email = data.get('user', {}).get('email_addresses', [{}])[0].get('email_address', '')
 
         if not email:
@@ -481,9 +504,21 @@ def teacher_dashboard():
     exams = db_execute(conn,
         "SELECT e.*, s.subject_name FROM exams e JOIN subjects s ON e.subject_id = s.id WHERE s.teacher_id = ?",
         (session['user_id'],)).fetchall()
-    pending = db_execute(conn, "SELECT * FROM users WHERE role = 'student' AND is_verified = 0").fetchall()
+    pending_verifications = db_execute(conn, "SELECT * FROM users WHERE role = 'student' AND is_verified = 0").fetchall()
+    pending_requests = db_execute(conn, """
+        SELECT r.*, u.name as student_name, u.student_number, e.title as exam_title, s.subject_name
+        FROM exam_access_requests r
+        JOIN users u ON r.student_id = u.id
+        JOIN exams e ON r.exam_id = e.id
+        JOIN subjects s ON e.subject_id = s.id
+        WHERE s.teacher_id = ? AND r.status = 'pending'
+        ORDER BY r.requested_at DESC
+    """, (session['user_id'],)).fetchall()
     conn.close()
-    return render_template('teacher_dashboard.html', subjects=subjects, exams=exams, pending_verifications=pending)
+    return render_template('teacher_dashboard.html',
+                           subjects=subjects, exams=exams,
+                           pending_verifications=pending_verifications,
+                           pending_requests=pending_requests)
 
 @app.route('/teacher/create_subject', methods=['GET', 'POST'])
 @login_required
@@ -565,6 +600,19 @@ def add_questions(exam_id):
     conn.close()
     return render_template('add_questions.html', exam=exam, questions=questions)
 
+@app.route('/teacher/delete_question/<int:question_id>', methods=['POST'])
+@login_required
+@role_required('teacher')
+def delete_question(question_id):
+    conn = get_db()
+    q = db_execute(conn, "SELECT exam_id FROM questions WHERE id = ?", (question_id,)).fetchone()
+    exam_id = q['exam_id'] if q else None
+    db_execute(conn, "DELETE FROM questions WHERE id = ?", (question_id,))
+    conn.commit()
+    conn.close()
+    flash('Question deleted.', 'success')
+    return redirect(url_for('add_questions', exam_id=exam_id) if exam_id else url_for('teacher_dashboard'))
+
 @app.route('/teacher/auto_generate_questions/<int:exam_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('teacher')
@@ -606,7 +654,6 @@ Separate each question block with a single blank line."""
             response = gemini_model.generate_content(prompt)
             generated_text = response.text.strip()
 
-            # Parse questions
             blocks = re.split(r'\n\s*\n', generated_text)
             saved_count = 0
             conn = get_db()
@@ -615,7 +662,6 @@ Separate each question block with a single blank line."""
                 lines = [l.strip() for l in block.strip().split('\n') if l.strip()]
                 if len(lines) < 6:
                     continue
-                # Extract fields
                 q_line = next((l for l in lines if l.lower().startswith('question:')), None)
                 a_line = next((l for l in lines if l.upper().startswith('A)')), None)
                 b_line = next((l for l in lines if l.upper().startswith('B)')), None)
@@ -762,38 +808,219 @@ def view_results():
     conn.close()
     return render_template('view_results.html', exams=exams, results=results, selected_exam=exam_id)
 
+# ─── Teacher: Exam Access Requests ───────────────────────────────────────────
+@app.route('/teacher/exam_requests')
+@login_required
+@role_required('teacher')
+def exam_requests():
+    conn = get_db()
+    status_filter = request.args.get('status', 'pending')
+    if status_filter == 'all':
+        all_requests = db_execute(conn, """
+            SELECT r.*, u.name as student_name, u.student_number, e.title as exam_title, s.subject_name
+            FROM exam_access_requests r
+            JOIN users u ON r.student_id = u.id
+            JOIN exams e ON r.exam_id = e.id
+            JOIN subjects s ON e.subject_id = s.id
+            WHERE s.teacher_id = ?
+            ORDER BY r.requested_at DESC
+        """, (session['user_id'],)).fetchall()
+    else:
+        all_requests = db_execute(conn, """
+            SELECT r.*, u.name as student_name, u.student_number, e.title as exam_title, s.subject_name
+            FROM exam_access_requests r
+            JOIN users u ON r.student_id = u.id
+            JOIN exams e ON r.exam_id = e.id
+            JOIN subjects s ON e.subject_id = s.id
+            WHERE s.teacher_id = ? AND r.status = ?
+            ORDER BY r.requested_at DESC
+        """, (session['user_id'], status_filter)).fetchall()
+    conn.close()
+    return render_template('exam_requests.html', requests=all_requests, status_filter=status_filter)
+
+@app.route('/teacher/approve_request/<int:req_id>', methods=['POST'])
+@login_required
+@role_required('teacher')
+def approve_request(req_id):
+    conn = get_db()
+    db_execute(conn, "UPDATE exam_access_requests SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", (req_id,))
+    conn.commit()
+    conn.close()
+    flash('Request approved — student can now take the exam.', 'success')
+    return redirect(request.referrer or url_for('exam_requests'))
+
+@app.route('/teacher/reject_request/<int:req_id>', methods=['POST'])
+@login_required
+@role_required('teacher')
+def reject_request(req_id):
+    conn = get_db()
+    db_execute(conn, "UPDATE exam_access_requests SET status = 'rejected', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", (req_id,))
+    conn.commit()
+    conn.close()
+    flash('Request rejected.', 'success')
+    return redirect(request.referrer or url_for('exam_requests'))
+
+# ─── Teacher: Exam Access Keys ────────────────────────────────────────────────
+@app.route('/teacher/exam_keys/<int:exam_id>')
+@login_required
+@role_required('teacher')
+def exam_keys(exam_id):
+    conn = get_db()
+    exam = db_execute(conn,
+        "SELECT e.*, s.subject_name FROM exams e JOIN subjects s ON e.subject_id = s.id WHERE e.id = ? AND s.teacher_id = ?",
+        (exam_id, session['user_id'])).fetchone()
+    if not exam:
+        flash('Exam not found.', 'danger')
+        conn.close()
+        return redirect(url_for('teacher_dashboard'))
+    keys = db_execute(conn, "SELECT * FROM exam_access_keys WHERE exam_id = ? ORDER BY created_at DESC", (exam_id,)).fetchall()
+    conn.close()
+    return render_template('exam_keys.html', exam=exam, keys=keys)
+
+@app.route('/teacher/generate_exam_key/<int:exam_id>', methods=['POST'])
+@login_required
+@role_required('teacher')
+def generate_exam_key(exam_id):
+    key = pysecrets.token_urlsafe(6).upper().replace('-', '').replace('_', '')[:8]
+    conn = get_db()
+    try:
+        db_execute(conn, "INSERT INTO exam_access_keys (exam_id, access_key) VALUES (?, ?)", (exam_id, key))
+        conn.commit()
+        flash(f'Access key generated: {key} — share this with your students.', 'success')
+    except Exception:
+        flash('Could not generate key. Please try again.', 'danger')
+    conn.close()
+    return redirect(url_for('exam_keys', exam_id=exam_id))
+
+@app.route('/teacher/deactivate_key/<int:key_id>', methods=['POST'])
+@login_required
+@role_required('teacher')
+def deactivate_key(key_id):
+    conn = get_db()
+    k = db_execute(conn, "SELECT exam_id FROM exam_access_keys WHERE id = ?", (key_id,)).fetchone()
+    exam_id = k['exam_id'] if k else None
+    db_execute(conn, "UPDATE exam_access_keys SET is_active = 0 WHERE id = ?", (key_id,))
+    conn.commit()
+    conn.close()
+    flash('Access key deactivated.', 'success')
+    return redirect(url_for('exam_keys', exam_id=exam_id) if exam_id else url_for('teacher_dashboard'))
+
 
 # ─── Student Routes ───────────────────────────────────────────────────────────
 @app.route('/student/dashboard')
 @login_required
 @role_required('student')
 def student_dashboard():
+    student_id = session['user_id']
     student_number = session['student_number']
     conn = get_db()
-    allowed_subjects = db_execute(conn,
-        "SELECT DISTINCT s.id, s.subject_name FROM allowed_students a JOIN subjects s ON a.subject_id = s.id WHERE a.student_number = ?",
-        (student_number,)).fetchall()
 
-    exams = []
-    for subject in allowed_subjects:
-        subject_exams = db_execute(conn,
-            """SELECT e.*, s.subject_name,
-               CASE WHEN r.id IS NOT NULL THEN 1 ELSE 0 END as taken
-               FROM exams e
-               JOIN subjects s ON e.subject_id = s.id
-               LEFT JOIN results r ON r.exam_id = e.id AND r.student_id = ?
-               WHERE e.subject_id = ?""",
-            (session['user_id'], subject['id'])).fetchall()
-        exams.extend(subject_exams)
+    # All exams in enrolled subjects, with access request status and taken status
+    exams = db_execute(conn, """
+        SELECT DISTINCT e.id, e.title, e.duration, s.subject_name,
+               COALESCE(r.status, 'none') as access_status,
+               r.id as request_id,
+               CASE WHEN res.id IS NOT NULL THEN 1 ELSE 0 END as taken
+        FROM exams e
+        JOIN subjects s ON e.subject_id = s.id
+        JOIN allowed_students a ON a.subject_id = s.id AND a.student_number = ?
+        LEFT JOIN exam_access_requests r ON r.exam_id = e.id AND r.student_id = ?
+        LEFT JOIN results res ON res.exam_id = e.id AND res.student_id = ?
+        ORDER BY s.subject_name, e.title
+    """, (student_number, student_id, student_id)).fetchall()
+
+    # Also include any key-approved exams outside enrolled subjects
+    key_exams = db_execute(conn, """
+        SELECT DISTINCT e.id, e.title, e.duration, s.subject_name,
+               'approved' as access_status,
+               r.id as request_id,
+               CASE WHEN res.id IS NOT NULL THEN 1 ELSE 0 END as taken
+        FROM exam_access_requests r
+        JOIN exams e ON r.exam_id = e.id
+        JOIN subjects s ON e.subject_id = s.id
+        LEFT JOIN results res ON res.exam_id = e.id AND res.student_id = ?
+        WHERE r.student_id = ? AND r.status = 'approved'
+        AND s.id NOT IN (
+            SELECT subject_id FROM allowed_students WHERE student_number = ?
+        )
+    """, (student_id, student_id, student_number)).fetchall()
+
+    all_exams = list(exams) + list(key_exams)
+    conn.close()
+    return render_template('student_dashboard.html', exams=all_exams)
+
+@app.route('/student/request_exam_access/<int:exam_id>', methods=['POST'])
+@login_required
+@role_required('student')
+def request_exam_access(exam_id):
+    student_id = session['user_id']
+    conn = get_db()
+    existing = db_execute(conn, "SELECT id, status FROM exam_access_requests WHERE student_id = ? AND exam_id = ?",
+                          (student_id, exam_id)).fetchone()
+    if existing:
+        if existing['status'] == 'approved':
+            flash('You already have approved access to this exam.', 'info')
+        elif existing['status'] == 'pending':
+            flash('Your access request is already pending approval.', 'info')
+        elif existing['status'] == 'rejected':
+            db_execute(conn, "UPDATE exam_access_requests SET status = 'pending', requested_at = CURRENT_TIMESTAMP WHERE id = ?",
+                       (existing['id'],))
+            conn.commit()
+            flash('Access request re-submitted. Please wait for teacher approval.', 'success')
+    else:
+        db_execute(conn, "INSERT INTO exam_access_requests (student_id, exam_id) VALUES (?, ?)", (student_id, exam_id))
+        conn.commit()
+        flash('Access request submitted! Please wait for your teacher to approve.', 'success')
+    conn.close()
+    return redirect(url_for('student_dashboard'))
+
+@app.route('/student/use_exam_key', methods=['POST'])
+@login_required
+@role_required('student')
+def use_exam_key():
+    key = request.form.get('access_key', '').strip().upper()
+    if not key:
+        flash('Please enter an access key.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
+    conn = get_db()
+    key_record = db_execute(conn,
+        "SELECT * FROM exam_access_keys WHERE access_key = ? AND is_active = 1", (key,)).fetchone()
+
+    if not key_record:
+        flash('Invalid or expired access key. Please check with your teacher.', 'danger')
+        conn.close()
+        return redirect(url_for('student_dashboard'))
+
+    exam_id = key_record['exam_id']
+    student_id = session['user_id']
+
+    existing = db_execute(conn, "SELECT id, status FROM exam_access_requests WHERE student_id = ? AND exam_id = ?",
+                          (student_id, exam_id)).fetchone()
+    if existing:
+        if existing['status'] == 'approved':
+            flash('You already have access to this exam.', 'info')
+        else:
+            db_execute(conn, "UPDATE exam_access_requests SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?",
+                       (existing['id'],))
+            conn.commit()
+            flash('Access granted via key! You can now take the exam.', 'success')
+    else:
+        db_execute(conn,
+            "INSERT INTO exam_access_requests (student_id, exam_id, status, reviewed_at) VALUES (?, ?, 'approved', CURRENT_TIMESTAMP)",
+            (student_id, exam_id))
+        conn.commit()
+        exam = db_execute(conn, "SELECT title FROM exams WHERE id = ?", (exam_id,)).fetchone()
+        flash(f'Access granted! You can now take "{exam["title"]}".', 'success')
 
     conn.close()
-    return render_template('student_dashboard.html', exams=exams)
+    return redirect(url_for('student_dashboard'))
 
 @app.route('/student/take_exam/<int:exam_id>')
 @login_required
 @role_required('student')
 def take_exam(exam_id):
-    student_number = session['student_number']
+    student_id = session['user_id']
     conn = get_db()
     exam = db_execute(conn,
         "SELECT e.*, s.id as subject_id FROM exams e JOIN subjects s ON e.subject_id = s.id WHERE e.id = ?",
@@ -804,16 +1031,17 @@ def take_exam(exam_id):
         conn.close()
         return redirect(url_for('student_dashboard'))
 
-    allowed = db_execute(conn,
-        "SELECT id FROM allowed_students WHERE student_number = ? AND subject_id = ?",
-        (student_number, exam['subject_id'])).fetchone()
-    if not allowed:
-        flash('You are not enrolled in this exam.', 'danger')
+    # Must have approved access request
+    access = db_execute(conn,
+        "SELECT id FROM exam_access_requests WHERE student_id = ? AND exam_id = ? AND status = 'approved'",
+        (student_id, exam_id)).fetchone()
+    if not access:
+        flash('You need approved access to take this exam. Please request access first.', 'warning')
         conn.close()
         return redirect(url_for('student_dashboard'))
 
     taken = db_execute(conn, "SELECT id FROM results WHERE student_id = ? AND exam_id = ?",
-                       (session['user_id'], exam_id)).fetchone()
+                       (student_id, exam_id)).fetchone()
     if taken:
         flash('You have already submitted this exam.', 'warning')
         conn.close()
@@ -937,6 +1165,8 @@ def delete_subject(subject_id):
         for eid in exam_ids:
             db_execute(conn, "DELETE FROM questions WHERE exam_id = ?", (eid['id'],))
             db_execute(conn, "DELETE FROM results WHERE exam_id = ?", (eid['id'],))
+            db_execute(conn, "DELETE FROM exam_access_requests WHERE exam_id = ?", (eid['id'],))
+            db_execute(conn, "DELETE FROM exam_access_keys WHERE exam_id = ?", (eid['id'],))
         db_execute(conn, "DELETE FROM exams WHERE subject_id = ?", (subject_id,))
         db_execute(conn, "DELETE FROM subjects WHERE id = ?", (subject_id,))
         conn.commit()
