@@ -1,0 +1,7 @@
+Flask==2.3.3
+bcrypt==4.0.1
+pandas>=2.3.3          # ← change this line
+openpyxl==3.1.2
+Flask
+gunicorn
+ 
