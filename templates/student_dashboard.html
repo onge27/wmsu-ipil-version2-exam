@@ -1,32 +1,74 @@
-﻿{% extends "base.html" %}
-
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
 {% block content %}
-<div class="fade-in">
-    <h2 class="mb-4">Student Dashboard</h2>
-    <div class="alert alert-info">
-        Welcome, {{ session.name }}! (Student Number: {{ session.student_number }})
+
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="page-title">My Exams</h1>
+    <p class="page-subtitle">Hello, <span class="font-semibold text-maroon-700">{{ session.name }}</span> &nbsp;·&nbsp; Student #{{ session.student_number }}</p>
+</div>
+
+{% if exams %}
+<!-- Summary bar -->
+{% set taken_count = exams|selectattr('taken')|list|length %}
+{% set pending_count = exams|length - taken_count %}
+<div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-maroon-700">{{ exams|length }}</div>
+        <div class="text-xs text-gray-500 mt-0.5 font-medium">Total Exams</div>
     </div>
-    <div class="row">
-        {% if exams %}
-            {% for exam in exams %}
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header"><h5 class="mb-0">{{ exam.title }}</h5></div>
-                    <div class="card-body">
-                        <p><strong>Subject:</strong> {{ exam.subject_name }}</p>
-                        <p><strong>Duration:</strong> {{ exam.duration }} minutes</p>
-                        {% if exam.taken %}
-                            <button class="btn btn-secondary" disabled>Already Taken</button>
-                        {% else %}
-                            <a href="{{ url_for('take_exam', exam_id=exam.id) }}" class="btn btn-primary">Start Exam</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="alert alert-warning">No exams available for you.</div>
-        {% endif %}
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-green-600">{{ taken_count }}</div>
+        <div class="text-xs text-gray-500 mt-0.5 font-medium">Completed</div>
+    </div>
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-amber-500">{{ pending_count }}</div>
+        <div class="text-xs text-gray-500 mt-0.5 font-medium">Pending</div>
     </div>
 </div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for exam in exams %}
+    <div class="card overflow-hidden hover:shadow-lg transition-shadow">
+        <!-- Top bar -->
+        <div class="h-1.5 {% if exam.taken %}bg-green-400{% else %}bg-maroon-700{% endif %}"></div>
+        <div class="card-body">
+            <!-- Subject badge -->
+            <div class="flex items-start justify-between gap-2 mb-3">
+                <span class="badge badge-blue text-xs">{{ exam.subject_name }}</span>
+                {% if exam.taken %}
+                <span class="badge badge-green"><i class="fas fa-circle-check text-xs"></i> Done</span>
+                {% else %}
+                <span class="badge badge-yellow"><i class="fas fa-clock text-xs"></i> Pending</span>
+                {% endif %}
+            </div>
+            <!-- Title -->
+            <h3 class="font-bold text-gray-900 mb-1 leading-snug">{{ exam.title }}</h3>
+            <!-- Duration -->
+            <p class="text-sm text-gray-500 mb-4"><i class="fas fa-clock text-xs mr-1.5 text-gray-400"></i>{{ exam.duration }} minutes</p>
+            <!-- Action -->
+            {% if exam.taken %}
+            <button class="btn btn-secondary w-full justify-center cursor-not-allowed opacity-70" disabled>
+                <i class="fas fa-circle-check"></i> Already Submitted
+            </button>
+            {% else %}
+            <a href="{{ url_for('take_exam', exam_id=exam.id) }}" class="btn btn-primary w-full justify-center">
+                <i class="fas fa-play"></i> Start Exam
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty state -->
+<div class="max-w-md mx-auto text-center py-16">
+    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-clipboard-list text-gray-300 text-3xl"></i>
+    </div>
+    <h2 class="text-lg font-bold text-gray-700 mb-2">No Exams Available</h2>
+    <p class="text-gray-500 text-sm">You don't have any assigned exams yet. Contact your teacher if you believe this is an error.</p>
+</div>
+{% endif %}
 {% endblock %}

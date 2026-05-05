@@ -1,39 +1,79 @@
-﻿{% extends "base.html" %}
-
+{% extends "base.html" %}
+{% block title %}Upload Students{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card animate__animated animate__fadeInUp">
-            <div class="card-header">
-                <h4 class="mb-0">Upload Student List</h4>
+<div class="max-w-xl">
+    <div class="mb-5">
+        <a href="{{ url_for('teacher_dashboard') }}" class="text-sm text-gray-500 hover:text-maroon-700 transition-colors"><i class="fas fa-arrow-left mr-1.5"></i>Back to Dashboard</a>
+    </div>
+    <div class="mb-5">
+        <h1 class="page-title">Upload Student List</h1>
+        <p class="page-subtitle">Import students from a CSV or Excel file</p>
+    </div>
+
+    <!-- Format guide -->
+    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-5">
+        <div class="flex gap-3">
+            <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5 flex-shrink-0"></i>
+            <div>
+                <p class="font-semibold text-amber-800 text-sm mb-1">File Requirements</p>
+                <ul class="text-xs text-amber-700 space-y-0.5 list-disc list-inside">
+                    <li>Accepted formats: <strong>.csv</strong> or <strong>.xlsx</strong></li>
+                    <li>Required columns: <code class="bg-amber-100 px-1 rounded font-mono">student_number</code> and <code class="bg-amber-100 px-1 rounded font-mono">student_name</code></li>
+                    <li>Student numbers should be numeric (dashes allowed)</li>
+                </ul>
             </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <strong>File Requirements:</strong>
-                    <ul>
-                        <li>CSV or Excel (.xlsx) file</li>
-                        <li>Must contain columns: <code>student_number</code> and <code>student_name</code></li>
-                    </ul>
-                </div>
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="subject_id">Select Subject</label>
-                        <select class="form-select" name="subject_id" required>
-                            <option value="">Choose subject...</option>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="form-label" for="subject_id">Subject</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-book text-sm"></i></span>
+                        <select name="subject_id" class="form-input pl-9 cursor-pointer" required>
+                            <option value="">Select subject...</option>
                             {% for subject in subjects %}
                             <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="file">Upload File</label>
-                        <input type="file" class="form-control" name="file" accept=".csv,.xlsx" required>
+                </div>
+                <div class="mb-5">
+                    <label class="form-label" for="file">Student List File</label>
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-maroon-400 hover:bg-maroon-50 transition-all">
+                        <input type="file" id="file" name="file" accept=".csv,.xlsx" required class="hidden" onchange="fileSelected(this)">
+                        <div id="dropContent">
+                            <i class="fas fa-cloud-arrow-up text-gray-300 text-4xl mb-3 block"></i>
+                            <p class="font-semibold text-gray-600 text-sm">Click to upload or drag & drop</p>
+                            <p class="text-gray-400 text-xs mt-1">CSV or XLSX file</p>
+                        </div>
+                        <div id="selectedFile" class="hidden">
+                            <i class="fas fa-file-excel text-green-500 text-3xl mb-2 block"></i>
+                            <p class="font-semibold text-gray-700 text-sm" id="fileName"></p>
+                            <p class="text-gray-400 text-xs mt-1">Click to change file</p>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Upload & Process</button>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-cloud-arrow-up"></i> Upload & Process</button>
                     <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Cancel</a>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+document.getElementById('dropZone').addEventListener('click', () => document.getElementById('file').click());
+function fileSelected(input) {
+    if (input.files && input.files[0]) {
+        document.getElementById('dropContent').classList.add('hidden');
+        document.getElementById('selectedFile').classList.remove('hidden');
+        document.getElementById('fileName').textContent = input.files[0].name;
+    }
+}
+</script>
 {% endblock %}

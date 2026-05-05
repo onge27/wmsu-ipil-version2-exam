@@ -1,22 +1,29 @@
-﻿{% extends "base.html" %}
-
+{% extends "base.html" %}
+{% block title %}Create Subject{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card animate__animated animate__fadeInUp">
-            <div class="card-header">
-                <h4 class="mb-0">Create New Subject</h4>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="subject_name" class="form-label">Subject Name</label>
-                        <input type="text" class="form-control" id="subject_name" name="subject_name" required>
+<div class="max-w-lg">
+    <div class="mb-5">
+        <a href="{{ url_for('teacher_dashboard') }}" class="text-sm text-gray-500 hover:text-maroon-700 transition-colors"><i class="fas fa-arrow-left mr-1.5"></i>Back to Dashboard</a>
+    </div>
+    <div class="mb-5">
+        <h1 class="page-title">Create New Subject</h1>
+        <p class="page-subtitle">Add a new subject or course to your list</p>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-5">
+                    <label class="form-label" for="subject_name">Subject Name</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-book-open text-sm"></i></span>
+                        <input type="text" id="subject_name" name="subject_name" class="form-input pl-9" placeholder="e.g. Computer Science, Mathematics" required autofocus>
                     </div>
-                    <button type="submit" class="btn btn-primary">Create Subject</button>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create Subject</button>
                     <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Cancel</a>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>

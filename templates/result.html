@@ -1,17 +1,50 @@
-﻿{% extends "base.html" %}
-
+{% extends "base.html" %}
+{% block title %}Exam Result{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card animate__animated animate__fadeInUp text-center">
-            <div class="card-header"><h4 class="mb-0">Exam Results</h4></div>
-            <div class="card-body">
-                <div class="display-1 mb-3">{{ score }} / {{ total }}</div>
-                <div class="mb-4"><h5>Percentage: {{ "%.1f"|format(score/total*100) }}%</h5></div>
-                <div class="alert alert-{{ prediction_class }}">
-                    <strong>Prediction:</strong> {{ prediction }}
-                </div>
-                <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+<div class="max-w-lg mx-auto py-6">
+    <div class="card overflow-visible">
+        <!-- Top accent -->
+        <div class="h-2 {% if prediction_class == 'success' %}bg-green-400{% else %}bg-red-400{% endif %}"></div>
+
+        <div class="card-body text-center py-10 px-8">
+            <!-- Icon -->
+            <div class="w-20 h-20 rounded-full {% if prediction_class == 'success' %}bg-green-50{% else %}bg-red-50{% endif %} flex items-center justify-center mx-auto mb-4">
+                {% if prediction_class == 'success' %}
+                <i class="fas fa-trophy text-green-400 text-4xl"></i>
+                {% else %}
+                <i class="fas fa-book-open text-red-400 text-4xl"></i>
+                {% endif %}
+            </div>
+
+            <h1 class="text-xl font-bold text-gray-900 mb-1">Exam Completed!</h1>
+            <p class="text-gray-500 text-sm mb-6">Your results have been recorded</p>
+
+            <!-- Score display -->
+            <div class="inline-flex items-end gap-2 mb-4">
+                <span class="text-6xl font-black {% if prediction_class == 'success' %}text-green-500{% else %}text-red-500{% endif %}">{{ score }}</span>
+                <span class="text-2xl text-gray-300 font-light mb-2">/{{ total }}</span>
+            </div>
+
+            <!-- Percentage bar -->
+            {% set pct = (score / total * 100)|int if total > 0 else 0 %}
+            <div class="w-full bg-gray-100 rounded-full h-3 mb-2 overflow-hidden">
+                <div class="h-3 rounded-full {% if pct >= 75 %}bg-green-400{% elif pct >= 50 %}bg-amber-400{% else %}bg-red-400{% endif %} transition-all" style="width:{{ pct }}%"></div>
+            </div>
+            <p class="text-sm text-gray-500 mb-6">{{ pct }}% score</p>
+
+            <!-- Prediction badge -->
+            <div class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold {% if prediction_class == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-red-50 text-red-700 border border-red-100{% endif %}">
+                {% if prediction_class == 'success' %}
+                <i class="fas fa-circle-check"></i> Likely to Pass the Final Exam
+                {% else %}
+                <i class="fas fa-circle-exclamation"></i> Needs Improvement — Keep Studying!
+                {% endif %}
+            </div>
+
+            <div class="mt-8">
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-house"></i> Back to Dashboard
+                </a>
             </div>
         </div>
     </div>

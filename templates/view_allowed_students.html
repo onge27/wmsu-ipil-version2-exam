@@ -1,17 +1,21 @@
-﻿{% extends "base.html" %} {% block content %}
-<div class="card animate__animated animate__fadeInUp">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">View Allowed Students</h4>
-            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-light btn-sm">← Back to Dashboard</a>
-        </div>
-    </div>
+{% extends "base.html" %}
+{% block title %}Enrolled Students{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <h1 class="page-title">Enrolled Students</h1>
+    <p class="page-subtitle">View students allowed to take exams per subject</p>
+</div>
+
+<div class="card mb-5">
     <div class="card-body">
-        <form method="GET" class="mb-4">
-            <div class="row">
-                <div class="col-md-8">
-                    <select name="subject_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">Select Subject</option>
+        <form method="GET" class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-52">
+                <label class="form-label">Filter by Subject</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-book text-sm"></i></span>
+                    <select name="subject_id" class="form-input pl-9 cursor-pointer" onchange="this.form.submit()">
+                        <option value="">-- Select a subject --</option>
                         {% for subject in subjects %}
                         <option value="{{ subject.id }}" {% if selected_subject|string == subject.id|string %}selected{% endif %}>
                             {{ subject.subject_name }}
@@ -21,33 +25,48 @@
                 </div>
             </div>
         </form>
-
-        {% if students %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Student Number</th>
-                        <th>Student Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                    <tr>
-                        <td>{{ student.student_number }}</td>
-                        <td>{{ student.student_name }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% elif selected_subject %}
-        <p class="text-muted">No students uploaded for this subject yet.</p>
-        {% endif %}
-
-        <div class="mt-3">
-            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-primary">🏠 Back to Teacher Dashboard</a>
-        </div>
     </div>
 </div>
+
+{% if students %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="font-bold text-gray-900 text-base">Student List</h2>
+        <span class="badge badge-blue">{{ students|length }} student(s)</span>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student Number</th>
+                    <th>Full Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="text-gray-400 text-xs font-mono">{{ loop.index }}</td>
+                    <td class="font-mono text-sm">{{ student.student_number }}</td>
+                    <td class="font-medium text-gray-800">{{ student.student_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif selected_subject %}
+<div class="text-center py-16">
+    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-users text-gray-300 text-2xl"></i></div>
+    <h2 class="text-lg font-bold text-gray-600 mb-1">No Students Yet</h2>
+    <p class="text-gray-400 text-sm mb-4">No students have been added to this subject.</p>
+    <a href="{{ url_for('upload_students') }}" class="btn btn-primary"><i class="fas fa-cloud-arrow-up"></i> Upload Student List</a>
+</div>
+{% else %}
+<div class="text-center py-16">
+    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-users text-gray-300 text-2xl"></i></div>
+    <h2 class="text-lg font-bold text-gray-600 mb-1">Select a Subject</h2>
+    <p class="text-gray-400 text-sm">Choose a subject above to see enrolled students.</p>
+</div>
+{% endif %}
 {% endblock %}

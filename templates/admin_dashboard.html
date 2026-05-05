@@ -1,70 +1,85 @@
-{% extends "base.html" %} {% block content %}
-<div class="fade-in">
-    <h2 class="mb-4">📊 Admin Dashboard</h2>
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="display-1">👨‍🎓</div>
-                    <h1 class="display-4">{{ total_students }}</h1>
-                    <p class="text-muted">Total Students</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="display-1">👨‍🏫</div>
-                    <h1 class="display-4">{{ total_teachers }}</h1>
-                    <p class="text-muted">Total Teachers</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="display-1">📚</div>
-                    <h1 class="display-4">{{ total_subjects }}</h1>
-                    <p class="text-muted">Subjects</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="display-1">📝</div>
-                    <h1 class="display-4">{{ total_exams }}</h1>
-                    <p class="text-muted">Exams</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="display-1">🏆</div>
-                    <h1 class="display-4">{{ total_results }}</h1>
-                    <p class="text-muted">Results Submitted</p>
-                </div>
-            </div>
-        </div>
-    </div>
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
 
-    <div class="card">
-        <div class="card-header">
-            <h5>⚙️ Admin Actions</h5>
+<div class="mb-6">
+    <h1 class="page-title">Admin Dashboard</h1>
+    <p class="page-subtitle">System overview and management</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="stat-card text-center col-span-1">
+        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-graduation-cap text-blue-500"></i>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-2">
-                    <a href="{{ url_for('manage_teachers') }}" class="btn btn-primary w-100">👨‍🏫 Manage Teachers</a>
+        <div class="text-2xl font-bold text-gray-900">{{ total_students }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Students</div>
+    </div>
+    <div class="stat-card text-center col-span-1">
+        <div class="w-10 h-10 bg-maroon-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-chalkboard-user text-maroon-700"></i>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ total_teachers }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Teachers</div>
+    </div>
+    <div class="stat-card text-center col-span-1">
+        <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-book text-green-600"></i>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ total_subjects }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Subjects</div>
+    </div>
+    <div class="stat-card text-center col-span-1">
+        <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-file-pen text-purple-600"></i>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ total_exams }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Exams</div>
+    </div>
+    <div class="stat-card text-center col-span-2 lg:col-span-1">
+        <div class="w-10 h-10 bg-gold-500/10 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-trophy text-gold-600"></i>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ total_results }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Submissions</div>
+    </div>
+</div>
+
+<!-- Quick actions -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="font-bold text-gray-900 text-base">Quick Actions</h2>
+    </div>
+    <div class="card-body">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <a href="{{ url_for('manage_teachers') }}" class="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-maroon-400 hover:bg-maroon-50 transition-all group">
+                <div class="w-11 h-11 rounded-xl bg-maroon-100 flex items-center justify-center group-hover:bg-maroon-700 transition-colors flex-shrink-0">
+                    <i class="fas fa-chalkboard-user text-maroon-700 group-hover:text-white transition-colors"></i>
                 </div>
-                <div class="col-md-4 mb-2">
-                    <a href="{{ url_for('view_all_subjects') }}" class="btn btn-primary w-100">📚 All Course</a>
+                <div>
+                    <div class="font-semibold text-sm text-gray-800">Manage Teachers</div>
+                    <div class="text-xs text-gray-400">View and remove teachers</div>
                 </div>
-                <div class="col-md-4 mb-2">
-                    <a href="{{ url_for('view_all_students') }}" class="btn btn-primary w-100">👨‍🎓 All Students</a>
+            </a>
+            <a href="{{ url_for('view_all_subjects') }}" class="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all group">
+                <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors flex-shrink-0">
+                    <i class="fas fa-book text-blue-600 group-hover:text-white transition-colors"></i>
                 </div>
-            </div>
+                <div>
+                    <div class="font-semibold text-sm text-gray-800">All Subjects</div>
+                    <div class="text-xs text-gray-400">View and delete subjects</div>
+                </div>
+            </a>
+            <a href="{{ url_for('view_all_students') }}" class="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-green-400 hover:bg-green-50 transition-all group">
+                <div class="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-600 transition-colors flex-shrink-0">
+                    <i class="fas fa-graduation-cap text-green-600 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-sm text-gray-800">All Students</div>
+                    <div class="text-xs text-gray-400">Registered student list</div>
+                </div>
+            </a>
         </div>
     </div>
 </div>

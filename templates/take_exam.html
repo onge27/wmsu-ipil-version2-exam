@@ -1,43 +1,107 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
+{% block title %}{{ exam.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.option-label { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border: 2px solid #e5e0db; border-radius: 10px; cursor: pointer; transition: all .2s; background: #fff; }
+.option-label:hover { border-color: #5a0000; background: #fdf8f5; }
+input[type=radio]:checked + .option-label { border-color: #5a0000; background: #fdf2f2; }
+.option-letter { width: 28px; height: 28px; border-radius: 8px; background: #f3f4f6; color: #6b7280; font-weight: 700; font-size: .8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; }
+input[type=radio]:checked + .option-label .option-letter { background: #5a0000; color: #fff; }
+.question-block { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 14px rgba(0,0,0,.05); border: 1px solid #f0ebe8; margin-bottom: 16px; }
+.timer-urgent { animation: pulse 1s infinite; color: #dc2626 !important; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="fade-in">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="mb-0">{{ exam.title }}</h4>
-            <div class="mt-2"><div class="timer" id="timer">Loading...</div></div>
+<!-- Sticky Timer Bar -->
+<div class="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-7 px-4 sm:px-6 lg:px-7 py-3 mb-6 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm" id="timerBar">
+    <div class="max-w-3xl mx-auto flex items-center justify-between gap-4">
+        <div class="min-w-0">
+            <h2 class="font-bold text-gray-900 text-base truncate">{{ exam.title }}</h2>
+            <p class="text-xs text-gray-400">{{ questions|length }} questions · Auto-submits when time runs out</p>
         </div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('submit_exam', exam_id=exam.id) }}" id="examForm">
-                {% for question in questions %}
-                <div class="question-card">
-                    <h6>Q{{ loop.index }}. {{ question.question }}</h6>
-                    <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ question.id }}" value="A" id="q{{ question.id }}_a"><label class="form-check-label" for="q{{ question.id }}_a">A. {{ question.option_a }}</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ question.id }}" value="B" id="q{{ question.id }}_b"><label class="form-check-label" for="q{{ question.id }}_b">B. {{ question.option_b }}</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ question.id }}" value="C" id="q{{ question.id }}_c"><label class="form-check-label" for="q{{ question.id }}_c">C. {{ question.option_c }}</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ question.id }}" value="D" id="q{{ question.id }}_d"><label class="form-check-label" for="q{{ question.id }}_d">D. {{ question.option_d }}</label></div>
-                </div>
-                {% endfor %}
-                <button type="submit" class="btn btn-primary btn-lg">Submit Exam</button>
-            </form>
+        <div class="flex-shrink-0 flex items-center gap-2 bg-maroon-50 border border-maroon-100 rounded-xl px-4 py-2">
+            <i class="fas fa-clock text-maroon-600 text-sm"></i>
+            <span id="timer" class="font-mono font-bold text-maroon-700 text-xl tracking-widest">--:--</span>
         </div>
     </div>
 </div>
+
+<div class="max-w-3xl mx-auto">
+    <form method="POST" action="{{ url_for('submit_exam', exam_id=exam.id) }}" id="examForm">
+
+        {% for question in questions %}
+        <div class="question-block">
+            <p class="font-semibold text-gray-900 mb-4 leading-relaxed">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-maroon-700 text-white font-bold text-xs mr-2 flex-shrink-0 align-middle">{{ loop.index }}</span>
+                {{ question.question }}
+            </p>
+            <div class="space-y-2.5">
+                {% for opt, label in [('A', question.option_a), ('B', question.option_b), ('C', question.option_c), ('D', question.option_d)] %}
+                <div>
+                    <input type="radio" name="q_{{ question.id }}" value="{{ opt }}" id="q{{ question.id }}_{{ opt }}" class="hidden" onchange="markAnswered({{ loop.index }})">
+                    <label for="q{{ question.id }}_{{ opt }}" class="option-label">
+                        <span class="option-letter">{{ opt }}</span>
+                        <span class="text-gray-700 text-sm leading-relaxed">{{ label }}</span>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Submit -->
+        <div class="sticky bottom-4 mt-2">
+            <div class="bg-white/95 backdrop-blur border border-gray-200 rounded-2xl p-4 shadow-lg flex flex-wrap items-center justify-between gap-3">
+                <div class="text-sm text-gray-500">
+                    <span id="answeredCount" class="font-bold text-maroon-700">0</span> / {{ questions|length }} answered
+                </div>
+                <button type="button" onclick="confirmSubmit()" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Submit Exam
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
-function startTimer(durationMinutes, displayElement, formId) {
-    let time = durationMinutes * 60;
-    const timerDisplay = document.getElementById(displayElement);
-    const interval = setInterval(() => {
-        const minutes = Math.floor(time / 60);
-        const seconds = time % 60;
-        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        if (time <= 0) {
-            clearInterval(interval);
-            document.getElementById(formId).submit();
-        }
-        time--;
-    }, 1000);
+// Timer
+let timeLeft = {{ exam.duration }} * 60;
+let answered = new Set();
+const totalQ = {{ questions|length }};
+
+function updateTimer() {
+    const m = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    const s = (timeLeft % 60).toString().padStart(2,'0');
+    const el = document.getElementById('timer');
+    el.textContent = m + ':' + s;
+    if (timeLeft <= 60) el.classList.add('timer-urgent');
+    if (timeLeft <= 0) { document.getElementById('examForm').submit(); return; }
+    timeLeft--;
 }
-startTimer({{ exam.duration }}, 'timer', 'examForm');
+updateTimer();
+setInterval(updateTimer, 1000);
+
+function markAnswered(idx) {
+    answered.add(idx);
+    document.getElementById('answeredCount').textContent = answered.size;
+}
+
+function confirmSubmit() {
+    const unanswered = totalQ - answered.size;
+    if (unanswered > 0) {
+        if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+    } else {
+        if (!confirm('Submit your exam? This cannot be undone.')) return;
+    }
+    document.getElementById('examForm').submit();
+}
+
+// Warn before leaving
+window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });
 </script>
 {% endblock %}

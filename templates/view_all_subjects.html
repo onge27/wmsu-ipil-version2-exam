@@ -1,41 +1,57 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block title %}All Subjects{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <a href="{{ url_for('admin_dashboard') }}" class="text-sm text-gray-500 hover:text-maroon-700 transition-colors mb-2 inline-block"><i class="fas fa-arrow-left mr-1.5"></i>Back to Dashboard</a>
+    <h1 class="page-title">All Subjects</h1>
+    <p class="page-subtitle">System-wide subjects and courses</p>
+</div>
+
 <div class="card">
     <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">📚 All Subjects</h4>
-            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light btn-sm">← Back to Dashboard</a>
-        </div>
+        <h2 class="font-bold text-gray-900 text-base">Subject List</h2>
+        <span class="badge badge-blue">{{ subjects|length }} subject(s)</span>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Subject Name</th>
-                        <th>Teacher</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for subject in subjects %}
-                    <tr>
-                        <td>{{ subject.id }}</td>
-                        <td>{{ subject.subject_name }}</td>
-                        <td>{{ subject.teacher_name }}</td>
-                        <td>
-                            <a href="{{ url_for('delete_subject', subject_id=subject.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('⚠️ Delete this subject? All exams, questions, and student enrollments will be permanently removed. This cannot be undone.')">
-                                🗑️ Delete
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="mt-3">
-            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">🏠 Back to Admin Dashboard</a>
-        </div>
+    {% if subjects %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Subject Name</th>
+                    <th>Assigned Teacher</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-book text-blue-500 text-xs"></i>
+                            </div>
+                            <span class="font-medium text-gray-800">{{ subject.subject_name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-gray-600 text-sm">{{ subject.teacher_name }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_subject', subject_id=subject.id) }}"
+                           onclick="return confirm('⚠️ Delete \"{{ subject.subject_name }}\"?\n\nThis will permanently remove all associated exams, questions, and student enrollments. This cannot be undone.')"
+                           class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash-can"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <div class="card-body text-center py-12">
+        <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-gray-300 text-2xl"></i></div>
+        <p class="text-gray-500 text-sm font-medium">No subjects created yet</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

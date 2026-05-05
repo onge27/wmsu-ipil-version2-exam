@@ -1,4 +1,6 @@
-﻿function startTimer(durationMinutes, displayElement, formId) {
+// Auto-dismiss flash messages (handled in base.html)
+// Legacy timer function kept for compatibility
+function startTimer(durationMinutes, displayElement, formId) {
     let time = durationMinutes * 60;
     const timerDisplay = document.getElementById(displayElement);
     const interval = setInterval(() => {
@@ -12,13 +14,3 @@
         time--;
     }, 1000);
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const mainContent = document.querySelector('.container');
-    if (mainContent) mainContent.classList.add('fade-in');
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('mouseenter', function() { this.style.transform = 'translateY(-2px)'; });
-        btn.addEventListener('mouseleave', function() { this.style.transform = 'translateY(0)'; });
-    });
-});

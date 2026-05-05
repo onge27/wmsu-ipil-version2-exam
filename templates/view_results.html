@@ -1,61 +1,111 @@
-﻿{% extends "base.html" %} {% block content %}
-<div class="card animate__animated animate__fadeInUp">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Exam Results Overview</h4>
-            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-light btn-sm">← Back to Dashboard</a>
-        </div>
-    </div>
+{% extends "base.html" %}
+{% block title %}Exam Results{% endblock %}
+{% block content %}
+
+<div class="mb-6">
+    <h1 class="page-title">Exam Results</h1>
+    <p class="page-subtitle">View student scores by exam</p>
+</div>
+
+<div class="card mb-5">
     <div class="card-body">
-        <form method="GET" class="mb-4">
-            <div class="row">
-                <div class="col-md-8">
-                    <select name="exam_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">Select Exam</option>
+        <form method="GET" class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-52">
+                <label class="form-label">Select Exam</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-file-pen text-sm"></i></span>
+                    <select name="exam_id" class="form-input pl-9 cursor-pointer" onchange="this.form.submit()">
+                        <option value="">-- Choose an exam --</option>
                         {% for exam in exams %}
                         <option value="{{ exam.id }}" {% if selected_exam|string == exam.id|string %}selected{% endif %}>
-                            {{ exam.subject_name }} - {{ exam.title }}
+                            {{ exam.subject_name }} — {{ exam.title }}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
             </div>
         </form>
-
-        {% if results %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Student Number</th>
-                        <th>Score</th>
-                        <th>Total</th>
-                        <th>Percentage</th>
-                        <th>Submitted At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for result in results %}
-                    <tr>
-                        <td>{{ result.name }}</td>
-                        <td>{{ result.student_number }}</td>
-                        <td>{{ result.score }}</td>
-                        <td>{{ result.total_questions }}</td>
-                        <td>{{ "%.1f"|format(result.score/result.total_questions*100) }}%</td>
-                        <td>{{ result.submitted_at }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% elif selected_exam %}
-        <p class="text-muted">No results for this exam yet.</p>
-        {% endif %}
-
-        <div class="mt-3">
-            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-primary">🏠 Back to Teacher Dashboard</a>
-        </div>
     </div>
 </div>
+
+{% if results %}
+<!-- Summary row -->
+{% set avg = (results|sum(attribute='score') / results|length) if results else 0 %}
+{% set pass_count = results|selectattr('score','ge', results[0].total_questions // 2 if results else 1)|list|length %}
+<div class="grid grid-cols-3 gap-3 mb-5">
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-gray-900">{{ results|length }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Submissions</div>
+    </div>
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-green-600">{{ pass_count }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Passed</div>
+    </div>
+    <div class="stat-card text-center">
+        <div class="text-2xl font-bold text-maroon-700">{{ "%.1f"|format(avg) }}</div>
+        <div class="text-xs text-gray-500 font-medium mt-0.5">Avg. Score</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="font-bold text-gray-900 text-base">Student Scores</h2>
+        <span class="badge badge-blue">{{ results|length }} result(s)</span>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Student No.</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Status</th>
+                    <th>Submitted At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                {% set pct = (result.score / result.total_questions * 100) if result.total_questions > 0 else 0 %}
+                {% set passed = result.score >= result.total_questions // 2 %}
+                <tr>
+                    <td class="font-medium text-gray-800">{{ result.name }}</td>
+                    <td class="font-mono text-sm text-gray-500">{{ result.student_number }}</td>
+                    <td class="font-semibold">{{ result.score }}<span class="text-gray-400 font-normal">/{{ result.total_questions }}</span></td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <div class="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full {% if pct >= 75 %}bg-green-400{% elif pct >= 50 %}bg-amber-400{% else %}bg-red-400{% endif %}" style="width:{{ pct|int }}%"></div>
+                            </div>
+                            <span class="text-sm font-medium">{{ "%.1f"|format(pct) }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if passed %}
+                        <span class="badge badge-green"><i class="fas fa-check text-xs"></i> Passed</span>
+                        {% else %}
+                        <span class="badge badge-red"><i class="fas fa-xmark text-xs"></i> Failed</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-gray-400 text-xs">{{ result.submitted_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif selected_exam %}
+<div class="text-center py-16">
+    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-inbox text-gray-300 text-2xl"></i></div>
+    <h2 class="text-lg font-bold text-gray-600 mb-1">No Submissions Yet</h2>
+    <p class="text-gray-400 text-sm">No students have submitted this exam yet.</p>
+</div>
+{% else %}
+<div class="text-center py-16">
+    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-chart-bar text-gray-300 text-2xl"></i></div>
+    <h2 class="text-lg font-bold text-gray-600 mb-1">Select an Exam</h2>
+    <p class="text-gray-400 text-sm">Choose an exam above to view the results.</p>
+</div>
+{% endif %}
 {% endblock %}

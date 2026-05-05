@@ -1,64 +1,102 @@
-﻿{% extends "base.html" %} {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card animate__animated animate__fadeInUp">
+{% extends "base.html" %}
+{% block title %}Add Questions{% endblock %}
+{% block content %}
+
+<!-- Header -->
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+    <div>
+        <a href="{{ url_for('teacher_dashboard') }}" class="text-sm text-gray-500 hover:text-maroon-700 transition-colors mb-2 inline-block"><i class="fas fa-arrow-left mr-1.5"></i>Back to Dashboard</a>
+        <h1 class="page-title">{{ exam.title }}</h1>
+        <p class="page-subtitle">Manage questions for this exam</p>
+    </div>
+    <a href="{{ url_for('auto_generate_questions', exam_id=exam.id) }}" class="btn btn-gold">
+        <i class="fas fa-robot"></i> AI Generate Questions
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+    <!-- Questions list (3/5) -->
+    <div class="lg:col-span-3">
+        <div class="card">
             <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Add Questions to: {{ exam.title }}</h4>
-                    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-light btn-sm">← Back to Dashboard</a>
-                </div>
+                <h2 class="font-bold text-gray-900 text-base">Questions <span class="text-maroon-700 ml-1">({{ questions|length }})</span></h2>
+            </div>
+            {% if questions %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px">#</th>
+                            <th>Question</th>
+                            <th style="width:90px">Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in questions %}
+                        <tr>
+                            <td class="text-gray-400 font-mono text-xs">{{ loop.index }}</td>
+                            <td class="font-medium text-gray-800 max-w-xs" style="white-space:normal;line-height:1.4">{{ q.question }}</td>
+                            <td><span class="badge badge-green font-mono text-sm">{{ q.correct_answer }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card-body text-center py-10">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-question text-gray-300 text-xl"></i></div>
+                <p class="text-gray-500 text-sm font-medium">No questions yet</p>
+                <p class="text-gray-400 text-xs mt-1">Add questions manually or use AI generation</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add question form (2/5) -->
+    <div class="lg:col-span-2">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="font-bold text-gray-900 text-base">Add Question</h2>
             </div>
             <div class="card-body">
-                <h5>Existing Questions ({{ questions|length }})</h5>
-                {% if questions %}
-                <div class="table-responsive mb-4">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Question</th>
-                                <th>Correct Answer</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for q in questions %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ q.question }}</td>
-                                <td>{{ q.correct_answer }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-
-                <h5>Add New Question</h5>
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="question" class="form-label">Question</label>
-                        <textarea class="form-control" id="question" name="question" rows="2" required></textarea>
+                        <label class="form-label">Question Text</label>
+                        <textarea name="question" rows="3" class="form-input resize-none" placeholder="Enter your question here..." required style="min-height:80px;resize:vertical"></textarea>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label for="option_a">Option A</label><input type="text" class="form-control" name="option_a" required></div>
-                        <div class="col-md-6 mb-3"><label for="option_b">Option B</label><input type="text" class="form-control" name="option_b" required></div>
-                        <div class="col-md-6 mb-3"><label for="option_c">Option C</label><input type="text" class="form-control" name="option_c" required></div>
-                        <div class="col-md-6 mb-3"><label for="option_d">Option D</label><input type="text" class="form-control" name="option_d" required></div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="form-label">Option A</label>
+                            <input type="text" name="option_a" class="form-input" placeholder="Option A" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Option B</label>
+                            <input type="text" name="option_b" class="form-input" placeholder="Option B" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Option C</label>
+                            <input type="text" name="option_c" class="form-input" placeholder="Option C" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Option D</label>
+                            <input type="text" name="option_d" class="form-input" placeholder="Option D" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="correct_answer">Correct Answer</label>
-                        <select class="form-select" name="correct_answer" required>
-                            <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                    <div class="mb-4">
+                        <label class="form-label">Correct Answer</label>
+                        <select name="correct_answer" class="form-input cursor-pointer" required>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Add Question</button>
-                    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Finish</a>
+                    <button type="submit" class="btn btn-primary w-full justify-center"><i class="fas fa-plus"></i> Add Question</button>
                 </form>
-                <div class="mt-3">
-                    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-primary">🏠 Back to Teacher Dashboard</a>
-                </div>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

@@ -13,3 +13,6 @@ openpyxl
 pandas
 python-dotenv
 werkzeug
+clerk-backend-api
+google-generativeai
+psycopg2-binary

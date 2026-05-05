@@ -1,102 +1,141 @@
-﻿{% extends "base.html" %} {% block content %}
-<div class="fade-in">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Teacher Dashboard</h2>
-    </div>
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
 
-    <div class="row">
-        <!-- Pending Verifications -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="mb-0">Pending Verifications</h5>
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Welcome back, <span class="font-semibold text-maroon-700">{{ session.name }}</span></p>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <a href="{{ url_for('create_subject') }}" class="stat-card flex items-center gap-3 hover:border-maroon-500 border border-transparent cursor-pointer group transition-all">
+        <div class="w-10 h-10 rounded-xl bg-maroon-100 flex items-center justify-center group-hover:bg-maroon-700 transition-colors flex-shrink-0">
+            <i class="fas fa-book-open text-maroon-700 group-hover:text-white text-sm transition-colors"></i>
+        </div>
+        <div>
+            <div class="font-semibold text-sm text-gray-800">New Subject</div>
+            <div class="text-xs text-gray-400">Create a course</div>
+        </div>
+    </a>
+    <a href="{{ url_for('create_exam') }}" class="stat-card flex items-center gap-3 hover:border-maroon-500 border border-transparent cursor-pointer group transition-all">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors flex-shrink-0">
+            <i class="fas fa-file-pen text-blue-600 group-hover:text-white text-sm transition-colors"></i>
+        </div>
+        <div>
+            <div class="font-semibold text-sm text-gray-800">New Exam</div>
+            <div class="text-xs text-gray-400">Build an exam</div>
+        </div>
+    </a>
+    <a href="{{ url_for('upload_students') }}" class="stat-card flex items-center gap-3 hover:border-maroon-500 border border-transparent cursor-pointer group transition-all">
+        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-600 transition-colors flex-shrink-0">
+            <i class="fas fa-cloud-arrow-up text-green-600 group-hover:text-white text-sm transition-colors"></i>
+        </div>
+        <div>
+            <div class="font-semibold text-sm text-gray-800">Upload List</div>
+            <div class="text-xs text-gray-400">Import students</div>
+        </div>
+    </a>
+    <a href="{{ url_for('view_results') }}" class="stat-card flex items-center gap-3 hover:border-maroon-500 border border-transparent cursor-pointer group transition-all">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-600 transition-colors flex-shrink-0">
+            <i class="fas fa-chart-bar text-purple-600 group-hover:text-white text-sm transition-colors"></i>
+        </div>
+        <div>
+            <div class="font-semibold text-sm text-gray-800">Results</div>
+            <div class="text-xs text-gray-400">View scores</div>
+        </div>
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- Exams Table (2/3) -->
+    <div class="lg:col-span-2">
+        <div class="card h-full">
+            <div class="card-header">
+                <div>
+                    <h2 class="font-bold text-gray-900 text-base">Your Exams</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ exams|length }} exam(s) created</p>
                 </div>
-                <div class="card-body">
-                    {% if pending_verifications %}
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Student Number</th>
-                                    <th>Email</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for student in pending_verifications %}
-                                <tr>
-                                    <td>{{ student.name }}</td>
-                                    <td>{{ student.student_number }}</td>
-                                    <td>{{ student.email }}</td>
-                                    <td><a href="{{ url_for('verify_student', user_id=student.id) }}" class="btn btn-sm btn-success">Verify</a></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted">No pending verifications</p>
-                    {% endif %}
-                </div>
+                <a href="{{ url_for('create_exam') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> New</a>
             </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('create_subject') }}" class="btn btn-primary">➕ Create Subject</a>
-                        <a href="{{ url_for('create_exam') }}" class="btn btn-primary">📝 Create Exam</a>
-                        <a href="{{ url_for('upload_students') }}" class="btn btn-primary">📤 Upload Student List</a>
-                        <a href="{{ url_for('view_allowed_students') }}" class="btn btn-outline-primary">👥 View Allowed Students</a>
-                        <a href="{{ url_for('view_results') }}" class="btn btn-outline-primary">📊 View Results</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Your Subjects & Exams -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Your Subjects & Exams</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table">
+            {% if exams %}
+            <div class="table-wrap">
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>Subject</th>
                             <th>Exam Title</th>
-                            <th>Duration (min)</th>
+                            <th>Duration</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for exam in exams %}
                         <tr>
-                            <td>{{ exam.subject_name }}</td>
-                            <td>{{ exam.title }}</td>
-                            <td>{{ exam.duration }}</td>
+                            <td><span class="badge badge-blue">{{ exam.subject_name }}</span></td>
+                            <td class="font-medium text-gray-800">{{ exam.title }}</td>
+                            <td><span class="text-gray-500 text-sm"><i class="fas fa-clock text-xs mr-1"></i>{{ exam.duration }} min</span></td>
                             <td>
-                                <a href="{{ url_for('add_questions', exam_id=exam.id) }}" class="btn btn-sm btn-primary">📝 Manage</a>
-                                <a href="{{ url_for('auto_generate_questions', exam_id=exam.id) }}" class="btn btn-sm btn-success">🤖 Auto-Generate</a>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <a href="{{ url_for('add_questions', exam_id=exam.id) }}" class="btn btn-sm" style="background:#f0f4ff;color:#3730a3;font-size:.75rem;padding:5px 10px"><i class="fas fa-list-check"></i> Manage</a>
+                                    <a href="{{ url_for('auto_generate_questions', exam_id=exam.id) }}" class="btn btn-sm btn-gold" style="font-size:.75rem;padding:5px 10px"><i class="fas fa-robot"></i> AI Generate</a>
+                                </div>
                             </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center">No exams created yet</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            {% else %}
+            <div class="card-body text-center py-12">
+                <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-file-pen text-gray-300 text-2xl"></i></div>
+                <p class="text-gray-500 text-sm font-medium">No exams created yet</p>
+                <a href="{{ url_for('create_exam') }}" class="btn btn-primary btn-sm mt-3"><i class="fas fa-plus"></i> Create First Exam</a>
+            </div>
+            {% endif %}
         </div>
     </div>
+
+    <!-- Pending Verifications (1/3) -->
+    <div>
+        <div class="card h-full">
+            <div class="card-header">
+                <div>
+                    <h2 class="font-bold text-gray-900 text-base">Pending Verifications</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Students awaiting approval</p>
+                </div>
+                {% if pending_verifications %}
+                <span class="badge badge-yellow"><i class="fas fa-clock text-xs"></i> {{ pending_verifications|length }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if pending_verifications %}
+                <div class="divide-y divide-gray-50">
+                    {% for student in pending_verifications %}
+                    <div class="px-5 py-4 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-semibold text-sm text-gray-800 truncate">{{ student.name }}</p>
+                            <p class="text-xs text-gray-400 truncate">{{ student.email }}</p>
+                            <p class="text-xs text-gray-400">#{{ student.student_number }}</p>
+                        </div>
+                        <a href="{{ url_for('verify_student', user_id=student.id) }}" class="btn btn-success flex-shrink-0" style="font-size:.75rem;padding:5px 10px">
+                            <i class="fas fa-check"></i> Verify
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-10 px-4">
+                    <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-2"><i class="fas fa-circle-check text-green-400 text-xl"></i></div>
+                    <p class="text-gray-500 text-sm font-medium">All students verified</p>
+                    <p class="text-gray-400 text-xs mt-0.5">No pending approvals</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

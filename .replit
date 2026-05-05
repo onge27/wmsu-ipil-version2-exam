@@ -34,3 +34,8 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+GEMINI_API_KEY = "AIzaSyDF2nsxeUIAeB_33-hr0M5gxTaH7zNJIU0"
