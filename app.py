@@ -1192,5 +1192,8 @@ def view_all_students():
     return render_template('view_all_students.html', students=students, allowed=allowed)
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=True)
