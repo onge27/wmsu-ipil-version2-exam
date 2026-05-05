@@ -39,3 +39,4 @@ externalPort = 80
 
 [userenv.shared]
 GEMINI_API_KEY = "AIzaSyDF2nsxeUIAeB_33-hr0M5gxTaH7zNJIU0"
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_4WkqozOmVi8X@ep-restless-math-amr6d7le-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
