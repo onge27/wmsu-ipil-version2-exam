@@ -1,0 +1,24 @@
+<!-- templates/result.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card animate__animated animate__fadeInUp text-center">
+            <div class="card-header">
+                <h4 class="mb-0">Exam Results</h4>
+            </div>
+            <div class="card-body">
+                <div class="display-1 mb-3">{{ score }} / {{ total }}</div>
+                <div class="mb-4">
+                    <h5>Percentage: {{ "%.1f"|format(score/total*100) }}%</h5>
+                </div>
+                <div class="alert alert-{{ prediction_class }}">
+                    <strong>Prediction:</strong> {{ prediction }}
+                </div>
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

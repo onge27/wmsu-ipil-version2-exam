@@ -1,0 +1,43 @@
+﻿{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card animate__animated animate__fadeInUp">
+            <div class="card-header">
+                <h4 class="mb-0">Login</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="login_id" class="form-label">Email or Student Number</label>
+                        <input type="text" class="form-control" id="login_id" name="login_id" placeholder="Enter your email address or student number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">👁️</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('register') }}" class="text-decoration-none">Don't have an account? Register</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function() {
+        // Toggle the type attribute
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        // Toggle the eye icon
+        this.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+</script>
+{% endblock %}

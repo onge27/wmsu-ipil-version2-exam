@@ -1,0 +1,70 @@
+<!-- templates/register.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card animate__animated animate__fadeInUp">
+            <div class="card-header">
+                <h4 class="mb-0">Register</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required onchange="toggleFields()">
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="studentNumberField">
+                        <label for="student_number" class="form-label">Student Number</label>
+                        <input type="number" class="form-control" id="student_number" name="student_number">
+                    </div>
+                    <div class="mb-3" id="teacherCodeField" style="display: none;">
+                        <label for="teacher_code" class="form-label">Teacher Registration Code</label>
+                        <input type="password" class="form-control" id="teacher_code" name="teacher_code">
+                        <small class="text-muted">Contact administrator for code</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('login') }}" class="text-decoration-none">Already have an account? Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFields() {
+    const role = document.getElementById('role').value;
+    const studentField = document.getElementById('studentNumberField');
+    const teacherField = document.getElementById('teacherCodeField');
+    
+    if (role === 'student') {
+        studentField.style.display = 'block';
+        teacherField.style.display = 'none';
+        document.getElementById('student_number').required = true;
+        document.getElementById('teacher_code').required = false;
+    } else {
+        studentField.style.display = 'none';
+        teacherField.style.display = 'block';
+        document.getElementById('student_number').required = false;
+        document.getElementById('teacher_code').required = true;
+    }
+}
+</script>
+{% endblock %}

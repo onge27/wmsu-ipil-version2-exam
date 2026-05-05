@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h1 class="display-4">{{ total_students }}</h1>
+                    <p class="text-muted">Total Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h1 class="display-4">{{ total_teachers }}</h1>
+                    <p class="text-muted">Total Teachers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h1 class="display-4">{{ total_subjects }}</h1>
+                    <p class="text-muted">Subjects</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h1 class="display-4">{{ total_exams }}</h1>
+                    <p class="text-muted">Exams</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h1 class="display-4">{{ total_results }}</h1>
+                    <p class="text-muted">Results Submitted</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Admin Actions</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <a href="{{ url_for('manage_teachers') }}" class="btn btn-primary w-100">👨‍🏫 Manage Teachers</a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <a href="{{ url_for('view_all_subjects') }}" class="btn btn-primary w-100">📚 All Subjects</a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <a href="{{ url_for('view_all_students') }}" class="btn btn-primary w-100">👨‍🎓 All Students</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

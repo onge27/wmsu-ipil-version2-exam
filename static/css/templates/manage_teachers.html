@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>Manage Teachers</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td>{{ teacher.id }}</td>
+                    <td>{{ teacher.name }}</td>
+                    <td>{{ teacher.email }}</td>
+                    <td>{% if teacher.is_verified %}✅ Verified{% else %}⏳ Pending{% endif %}</td>
+                    <td>
+                        <a href="{{ url_for('delete_teacher', user_id=teacher.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this teacher?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

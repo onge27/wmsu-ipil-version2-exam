@@ -1,0 +1,72 @@
+<!-- templates/add_questions.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card animate__animated animate__fadeInUp">
+            <div class="card-header">
+                <h4 class="mb-0">Add Questions to: {{ exam.title }}</h4>
+            </div>
+            <div class="card-body">
+                <h5>Existing Questions ({{ questions|length }})</h5>
+                {% if questions %}
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>#</th><th>Question</th><th>Correct Answer</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for q in questions %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ q.question }}</td>
+                                    <td>{{ q.correct_answer }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                
+                <h5>Add New Question</h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="question" class="form-label">Question</label>
+                        <textarea class="form-control" id="question" name="question" rows="2" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="option_a" class="form-label">Option A</label>
+                            <input type="text" class="form-control" id="option_a" name="option_a" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="option_b" class="form-label">Option B</label>
+                            <input type="text" class="form-control" id="option_b" name="option_b" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="option_c" class="form-label">Option C</label>
+                            <input type="text" class="form-control" id="option_c" name="option_c" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="option_d" class="form-label">Option D</label>
+                            <input type="text" class="form-control" id="option_d" name="option_d" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="correct_answer" class="form-label">Correct Answer</label>
+                        <select class="form-select" id="correct_answer" name="correct_answer" required>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                    <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Finish</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

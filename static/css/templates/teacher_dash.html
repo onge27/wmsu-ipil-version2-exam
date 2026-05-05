@@ -1,0 +1,100 @@
+<!-- templates/teacher_dashboard.html -->
+{% extends "base.html" %} {% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Teacher Dashboard</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Pending Verifications</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_verifications %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Student Number</th>
+                                    <th>Email</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in pending_verifications %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.student_number }}</td>
+                                    <td>{{ student.email }}</td>
+                                    <td><a href="{{ url_for('verify_student', user_id=student.id) }}" class="btn btn-sm btn-success">Verify</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No pending verifications</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('create_subject') }}" class="btn btn-primary">➕ Create Subject</a>
+                        <a href="{{ url_for('create_exam') }}" class="btn btn-primary">📝 Create Exam</a>
+                        <a href="{{ url_for('upload_students') }}" class="btn btn-primary">📤 Upload Student List</a>
+                        <a href="{{ url_for('view_allowed_students') }}" class="btn btn-outline-primary">👥 View Allowed Students</a>
+                        <a href="{{ url_for('view_results') }}" class="btn btn-outline-primary">📊 View Results</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Your Subjects & Exams</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Exam Title</th>
+                            <th>Duration (min)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in exams %}
+                        <tr>
+                            <td>{{ exam.subject_name }}</td>
+                            <td>{{ exam.title }}</td>
+                            <td>{{ exam.duration }}</td>
+                            <td>
+                                <a href="{{ url_for('add_questions', exam_id=exam.id) }}" class="btn btn-sm btn-primary">📝 Manage</a>
+                                <a href="{{ url_for('auto_generate_questions', exam_id=exam.id) }}" class="btn btn-sm btn-success">🤖 Auto-Generate</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center">No exams created yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

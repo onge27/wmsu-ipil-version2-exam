@@ -1,0 +1,32 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <h2 class="mb-4">Student Dashboard</h2>
+    <div class="alert alert-info">
+        Welcome, {{ session.name }}! (Student Number: {{ session.student_number }})
+    </div>
+    <div class="row">
+        {% if exams %}
+            {% for exam in exams %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header"><h5 class="mb-0">{{ exam.title }}</h5></div>
+                    <div class="card-body">
+                        <p><strong>Subject:</strong> {{ exam.subject_name }}</p>
+                        <p><strong>Duration:</strong> {{ exam.duration }} minutes</p>
+                        {% if exam.taken %}
+                            <button class="btn btn-secondary" disabled>Already Taken</button>
+                        {% else %}
+                            <a href="{{ url_for('take_exam', exam_id=exam.id) }}" class="btn btn-primary">Start Exam</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-warning">No exams available for you.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

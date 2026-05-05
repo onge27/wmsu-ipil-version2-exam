@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>All Subjects</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>ID</th><th>Subject Name</th><th>Teacher</th></tr></thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td>{{ subject.id }}</td>
+                    <td>{{ subject.subject_name }}</td>
+                    <td>{{ subject.teacher_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

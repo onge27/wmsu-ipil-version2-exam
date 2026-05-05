@@ -1,0 +1,149 @@
+<!-- templates/take_exam.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">{{ exam.title }}</h4>
+            <div class="mt-2">
+                <div class="timer" id="timer">Loading...</div>
+                <small class="text-muted">Auto-submit when time reaches zero</small>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('submit_exam', exam_id=exam.id) }}" id="examForm">
+                {% for question in questions %}
+                <div class="question-card">
+                    <h6>Q{{ loop.index }}. {{ question.question }}</h6>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" name="q_{{ question.id }}" value="A" id="q{{ question.id }}_a">
+                        <label class="form-check-label" for="q{{ question.id }}_a">A. {{ question.option_a }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q_{{ question.id }}" value="B" id="q{{ question.id }}_b">
+                        <label class="form-check-label" for="q{{ question.id }}_b">B. {{ question.option_b }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q_{{ question.id }}" value="C" id="q{{ question.id }}_c">
+                        <label class="form-check-label" for="q{{ question.id }}_c">C. {{ question.option_c }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q_{{ question.id }}" value="D" id="q{{ question.id }}_d">
+                        <label class="form-check-label" for="q{{ question.id }}_d">D. {{ question.option_d }}</label>
+                    </div>
+                    <div class="invalid-feedback" style="display: none;">Please select an answer</div>
+                </div>
+                {% endfor %}
+                <div class="mt-4">
+                    <button type="submit" id="submitBtn" class="btn btn-primary btn-lg">Submit Exam</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ----- TIMER IMPLEMENTATION -----
+    (function() {
+        let timeRemaining = {{ exam.duration }} * 60;   // seconds
+        let timerInterval = null;
+        let examSubmitted = false;
+        const timerDisplay = document.getElementById('timer');
+        const examForm = document.getElementById('examForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!timerDisplay) return;
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Auto-submit when time expires
+        function autoSubmit() {
+            if (examSubmitted) return;
+            examSubmitted = true;
+            if (timerDisplay) timerDisplay.textContent = "Time's up! Submitting...";
+            if (examForm) {
+                // Disable submit button to prevent double submission
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                }
+                examForm.submit();
+            }
+        }
+
+        // Start countdown
+        function startExamTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(function() {
+                if (examSubmitted) return;
+                if (timeRemaining <= 1) {
+                    clearInterval(timerInterval);
+                    autoSubmit();
+                } else {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        startExamTimer();
+
+        // ----- FORM VALIDATION (ensure at least one answer per question) -----
+        function validateForm() {
+            const questionCards = document.querySelectorAll('.question-card');
+            let allValid = true;
+            questionCards.forEach(card => {
+                const radios = card.querySelectorAll('input[type="radio"]');
+                const isChecked = Array.from(radios).some(radio => radio.checked);
+                const feedback = card.querySelector('.invalid-feedback');
+                if (!isChecked) {
+                    allValid = false;
+                    if (feedback) feedback.style.display = 'block';
+                } else {
+                    if (feedback) feedback.style.display = 'none';
+                }
+            });
+            return allValid;
+        }
+
+        // Manual submit with validation
+        if (examForm) {
+            examForm.addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    alert('Please answer all questions before submitting.');
+                    return false;
+                }
+                if (examSubmitted) {
+                    e.preventDefault();
+                    return false;
+                }
+                examSubmitted = true;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                }
+                // Clear timer to avoid double-submit from timer
+                if (timerInterval) clearInterval(timerInterval);
+            });
+        }
+
+        // ----- WARNING ON PAGE LEAVE (only if answers given and exam not submitted) -----
+        window.addEventListener('beforeunload', function(e) {
+            if (examSubmitted) return;
+            const anyChecked = document.querySelector('input[type="radio"]:checked');
+            if (anyChecked) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved answers. Are you sure you want to leave?';
+                return e.returnValue;
+            }
+        });
+    })();
+</script>
+{% endblock %}

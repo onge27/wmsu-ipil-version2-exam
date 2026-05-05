@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card animate__animated animate__fadeInUp">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">🤖 Auto-Generate Questions</h4>
+                    <a href="{{ url_for('add_questions', exam_id=exam.id) }}" class="btn btn-light btn-sm">← Back to Add Questions</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5>Exam: {{ exam.title }}</h5>
+                <p class="text-muted">Let AI create multiple-choice questions based on any topic.</p>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Topic / Subject Matter</label>
+                        <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g., Philippine History, Python Programming, World War II, Calculus" required>
+                        <small class="text-muted">Example: "Basics of Object-Oriented Programming"</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="num_questions" class="form-label">Number of Questions to Generate</label>
+                        <input type="number" class="form-control" id="num_questions" name="num_questions" min="1" max="20" value="5" required>
+                        <small class="text-muted">You can generate 1 to 20 questions at a time.</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>ℹ️ How it works:</strong>
+                        <ul class="mb-0">
+                            <li>AI will generate the exact number of questions you specify.</li>
+                            <li>Each question will have 4 options (A, B, C, D) and a correct answer.</li>
+                            <li>Questions are automatically saved to this exam.</li>
+                            <li>You can review and edit them afterwards.</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">🚀 Generate & Save</button>
+                        <a href="{{ url_for('add_questions', exam_id=exam.id) }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

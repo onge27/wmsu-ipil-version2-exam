@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>All Registered Students</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Name</th><th>Student Number</th><th>Email</th><th>Verified</th></tr></thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.student_number }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{% if student.is_verified %}✅{% else %}❌{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h4>Allowed Students per Subject</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Student Number</th><th>Student Name</th><th>Subject</th></tr></thead>
+            <tbody>
+                {% for a in allowed %}
+                <tr>
+                    <td>{{ a.student_number }}</td>
+                    <td>{{ a.student_name }}</td>
+                    <td>{{ a.subject_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

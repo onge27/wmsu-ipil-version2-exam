@@ -1,0 +1,50 @@
+<!-- templates/view_results.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h4 class="mb-0">Exam Results Overview</h4>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="mb-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <select name="exam_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Select Exam</option>
+                        {% for exam in exams %}
+                        <option value="{{ exam.id }}" {% if selected_exam|string == exam.id|string %}selected{% endif %}>
+                            {{ exam.subject_name }} - {{ exam.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+        
+        {% if results %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Student Name</th><th>Student Number</th><th>Score</th><th>Total</th><th>Percentage</th><th>Submitted At</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.name }}</td>
+                            <td>{{ result.student_number }}</td>
+                            <td>{{ result.score }}</td>
+                            <td>{{ result.total_questions }}</td>
+                            <td>{{ "%.1f"|format(result.score/result.total_questions*100) }}%</td>
+                            <td>{{ result.submitted_at }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif selected_exam %}
+            <p class="text-muted">No results for this exam yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

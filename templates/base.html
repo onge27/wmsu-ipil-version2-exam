@@ -1,0 +1,275 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Examination System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* ── CAMPUS BACKGROUND ── */
+        
+        body {
+            min-height: 100vh;
+            font-family: 'Crimson Pro', Georgia, serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .campus-bg {
+            position: fixed;
+            inset: 0;
+            background-image: url("{{ url_for('static', filename='img/wmsu_campus.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -2;
+        }
+        
+        .campus-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( 135deg, rgba(90, 0, 0, 0.82) 0%, rgba(128, 0, 0, 0.62) 40%, rgba(0, 0, 0, 0.55) 100%);
+            z-index: 1;
+        }
+        /* ── NAVBAR ── */
+        
+        .wmsu-navbar {
+            background: rgba(90, 0, 0, 0.97) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 2px solid #c9a227;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+            padding: 0.55rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .navbar-brand .wmsu-logo {
+            width: clamp(32px, 5vw, 42px);
+            height: clamp(32px, 5vw, 42px);
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+            flex-shrink: 0;
+        }
+        
+        .navbar-brand .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        
+        .navbar-brand .brand-main {
+            font-family: 'Cinzel', Georgia, serif;
+            font-weight: 700;
+            font-size: clamp(0.78rem, 2vw, 1rem);
+            color: #fff;
+            letter-spacing: 0.04em;
+        }
+        
+        .navbar-brand .brand-sub {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: clamp(0.58rem, 1.4vw, 0.68rem);
+            color: #c9a227;
+            letter-spacing: 0.1em;
+            font-weight: 400;
+        }
+        /* Hamburger icon white */
+        
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        /* Nav links */
+        
+        .wmsu-navbar .nav-link {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 0.76rem;
+            letter-spacing: 0.07em;
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.45rem 0.9rem;
+            border-bottom: 2px solid transparent;
+            transition: color 0.25s, border-color 0.25s;
+        }
+        
+        .wmsu-navbar .nav-link:hover,
+        .wmsu-navbar .nav-link.active {
+            color: #c9a227 !important;
+            border-bottom-color: #c9a227;
+        }
+        
+        .wmsu-navbar .nav-link.welcome-text {
+            color: rgba(255, 255, 255, 0.65) !important;
+            font-size: 0.72rem;
+            cursor: default;
+        }
+        
+        .wmsu-navbar .nav-link.welcome-text:hover {
+            color: rgba(255, 255, 255, 0.65) !important;
+            border-bottom-color: transparent;
+        }
+        /* Collapse on mobile */
+        
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: rgba(70, 0, 0, 0.97);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                margin-top: 8px;
+            }
+        }
+        /* ── MAIN CONTENT WRAPPER ── */
+        
+        .content-wrapper {
+            padding: clamp(16px, 3vw, 32px) clamp(12px, 3vw, 24px);
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+        /* ── GLASS CONTENT CONTAINER ── */
+        
+        .glass-container {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 16px;
+            padding: clamp(16px, 4vw, 32px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+            border: 1px solid rgba(201, 162, 39, 0.18);
+            animation: fadeUp 0.55s ease both;
+        }
+        
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* ── ALERTS ── */
+        
+        .alert {
+            border-radius: 10px;
+            font-family: 'Crimson Pro', Georgia, serif;
+            font-size: 1rem;
+            border: none;
+            padding: 0.85rem 1.2rem;
+        }
+        
+        .alert-danger {
+            background: #fdf0f0;
+            color: #7a0000;
+            border-left: 4px solid #800000;
+        }
+        
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .alert-info {
+            background: #f0f7ff;
+            color: #1e3a5f;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .alert-warning {
+            background: #fffbeb;
+            color: #78350f;
+            border-left: 4px solid #f59e0b;
+        }
+        /* ── RESPONSIVE ── */
+        
+        @media (max-width: 576px) {
+            .glass-container {
+                border-radius: 10px;
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Fixed campus background -->
+    <div class="campus-bg"></div>
+
+    <!-- ── NAVBAR ── -->
+    <nav class="navbar navbar-expand-lg wmsu-navbar">
+        <div class="container-fluid px-3">
+
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <img src="{{ url_for('static', filename='img/wmsu_logo.png') }}" alt="WMSU Logo" class="wmsu-logo">
+                <span class="brand-text">
+                    <span class="brand-main">Online Examination System</span>
+                <span class="brand-sub">Western Mindanao State University</span>
+                </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-lg-center gap-1">
+                    {% if session.user_id %}
+                    <li class="nav-item">
+                        <span class="nav-link welcome-text">👤 {{ session.name }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- ── PAGE CONTENT ── -->
+    <div class="content-wrapper">
+        <div class="glass-container animate__animated animate__fadeIn">
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %} {% endif %} {% endwith %}
+
+            <!-- Child template content -->
+            {% block content %}{% endblock %}
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
